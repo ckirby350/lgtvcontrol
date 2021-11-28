@@ -1,10 +1,7 @@
 /**
- *      Lgtv2 - Simple Node.js module to remote control LG WebOS smart TVs
+ *      Simple Node.js module to control LG WebOS smart TVs
  *
- *      MIT (c) Sebastian Raff <hq@ccu.io> (https://github.com/hobbyquaker)
- *      this is a fork of https://github.com/msloth/lgtv.js, heavily modified and rewritten to suite my needs.
- *
- */
+  */
  
 var fs = require('fs');
 var EventEmitter = require('events').EventEmitter;

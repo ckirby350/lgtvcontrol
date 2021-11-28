@@ -1,0 +1,29 @@
+doctype html  
+html   
+    head        
+        meta(charset='UTF-8')        
+        title LGTV Channel Control
+        style
+            include ../public/stylesheets/bootstrap.min.css
+        script
+            include ../public/javascripts/homefunctions.js
+    body        
+        main#main
+        h3.ui.center.aligned.header LGTV Channel Control
+        .ui.container
+        table.ui.celled.table.center.aligned
+            tbody
+            each tv in tvList
+                tr                
+                td 
+                    button(type='button' 
+                        class='btn btn-primary' 
+                        onClick='showChannels(' + tv.tvNumber + ');')
+                        .clickable-space TV # #{tv.tvNumber}
+                td (#{tv.ipAddress})
+            tfoot
+            tr
+                th(colspan='2')
+            form(action="gotoChannelsPage" method="POST")
+                input(type="hidden" id="selectedTV" name="selectedTV" value="")
+            </form>

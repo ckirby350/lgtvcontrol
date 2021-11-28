@@ -1,8 +1,9 @@
 const prompt = require('prompt-sync')({sigint: true});
 var tvList = ['192.168.254.23','192.168.254.23','192.168.254.23','192.168.254.11']
+//var tvList = {channelId: '3_3_3_1_0_0_0'}
 var selectedTVNum = 0;
 
-var lgtv = require('./index.js')({
+var lgtv = require('./master.js')({
 	url: 'ws://' + tvList[0] + ':3000'
     //url: 'ws://lgwebostv:3000'
 });
@@ -23,7 +24,7 @@ lgtv.on('connect', function () {
 		//resj = JSON.parse(res);
 		lgtv.currentChannelList = res;
 		//console.log(lgtv.currentChannelList.channelList.length);
-		console.log("Channel List:");
+		console.log("Channel List 2:");
 		for (var chCnt=0; chCnt < res.channelList.length; chCnt++) {
 			console.log(' (' + chCnt + ') ' + res.channelList[chCnt].channelMode + ' ' + res.channelList[chCnt].channelNumber + ' id=' + res.channelList[chCnt].channelId);
 		}
