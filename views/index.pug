@@ -11,19 +11,11 @@ html
         main#main
         h3.ui.center.aligned.header LGTV Channel Control
         .ui.container
-        table.ui.celled.table.center.aligned
-            tbody
+        div(class="btn-toolbar mr-1")
             each tv in tvList
-                tr                
-                td 
-                    button(type='button' 
-                        class='btn btn-primary' 
-                        onClick='showChannels(' + tv.tvNumber + ');')
-                        .clickable-space TV # #{tv.tvNumber}
-                td (#{tv.ipAddress})
-            tfoot
-            tr
-                th(colspan='2')
-            form(action="gotoChannelsPage" method="POST")
-                input(type="hidden" id="selectedTV" name="selectedTV" value="")
-            </form>
+                button(type='button' 
+                    class='btn btn-primary' 
+                    style='margin-left: 5px;'
+                    onClick='showChannels(' + tv.tvNumber + ');') TV # #{tv.tvNumber}
+        form(action="gotoChannelsPage" method="POST")
+            input(type="hidden" id="selectedTV" name="selectedTV" value="")

@@ -5,13 +5,32 @@ html
         title LGTV Channel Control - Channel List
         style
             include ..\public\stylesheets\bootstrap.min.css
+        script
+            include ../public/javascripts/channelfuncs.js
     body        
         main#main
         h3.ui.center.aligned.header Channel List for TV # #{selectedTV}
-        a(href="/returnToMain")
-            button(type='button' 
-                        class='btn btn-primary' 
-                        value="Back to TV Select Menu") Return to TV Select Menu
+        div(class="btn-group-vertical")
+            each channel in channelList
+                if channel.channelId == currentChannelID
+                    button(type='button' 
+                            class='btn btn-success' 
+                            style='margin-bottom: 5px;'
+                            onClick='selectChannel("' + channel.channelId + '");') #{channel.channelMode} #{channel.channelNumber}
+                else 
+                    button(type='button' 
+                        class='btn btn-primary'
+                        style='margin-bottom: 5px;' 
+                        onClick='selectChannel("' + channel.channelId + '");') #{channel.channelMode} #{channel.channelNumber}
+                
+            a(href="/returnToMain")
+                button(type='button' 
+                            class='btn btn-primary' 
+                            value="Back to TV Select Menu") Return to TV Select Menu
+        form(action="changeChannel" method="POST")
+                input(type="hidden" id="channelID" name="channelID" value="#{currentChannelID}")
+
+
             
         
         
