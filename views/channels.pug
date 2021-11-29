@@ -10,7 +10,7 @@ html
     body        
         main#main
         h3.ui.center.aligned.header Channel List for TV # #{selectedTV}
-        div(class="btn-group-vertical")
+        div(class="btn-group-vertical" style='margin-left: 5px;' id='btnDiv')
             each channel in channelList
                 if channel.channelId == currentChannelID
                     button(type='button' 

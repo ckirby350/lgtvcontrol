@@ -10,8 +10,7 @@ html
     body        
         main#main
         h3.ui.center.aligned.header LGTV Channel Control
-        .ui.container
-        div(class="btn-toolbar mr-1")
+        div(class="btn-toolbar mr-1" id="btnDiv")
             each tv in tvList
                 button(type='button' 
                     class='btn btn-primary' 
