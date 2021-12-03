@@ -47,16 +47,44 @@ function readyToShowChannels() {
     return false;    
 }
 
+function powerOff(tvIPAddress) {
+    var xlgtv;
+    xlgtv = require('./master.js')({
+        url: 'ws://' + tvIPAddress + ':3000'
+    });
+
+    xlgtv.on('error', function (err) {
+        console.log(err);
+        xlgtv.disconnect();        
+    });    
+    
+    xlgtv.on('connect', function () {
+        //console.log('connected to TV# for power off...');
+        xlgtv.request('ssap://system/turnOff', function (err, res) {
+            xlgtv.disconnect();
+        });
+    });            
+}
+
 app.post("/gotoChannelsPage", (req,mainRes) => {
     var tv;    
-    var selectedChannelNum;
+    var selectedChannelNum;   
     //console.log('selectedTV=' + req.body.selectedTV);
     for(var i = 0; i < tvListObj.length; i++) {
         tv = tvListObj[i];
-        if (tv.tvNumber == req.body.selectedTV) {
-            currentSelectedTV = req.body.selectedTV;            
-            break;
+        if (req.body.selectedTV == "0") {
+            console.log("Shutting down TV " + tv.tvNumber);
+            powerOff(tv.ipAddress);           
+        } else {
+            if (tv.tvNumber == req.body.selectedTV) {            
+                currentSelectedTV = req.body.selectedTV;            
+                break;
+            }
         }
+    }
+    if (req.body.selectedTV == "0") {
+        mainRes.render('index', { tvList : tvListObj });
+        return;
     }
     console.log("selectedTV IP=" + tv.ipAddress);
     lgtv = require('./master.js')({

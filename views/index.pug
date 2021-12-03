@@ -7,14 +7,22 @@ html
             include ../public/stylesheets/bootstrap.min.css
         script
             include ../public/javascripts/homefunctions.js
-    body        
+    body(style="margin-left: 5px; margin-top: 10px;")        
         main#main
-        h3.ui.center.aligned.header LGTV Channel Control
-        div(class="btn-toolbar mr-1" id="btnDiv")
+        div(class="container")
+            div(class="row justify-content-between")
+                div(class="col-4")
+                    h3 LGTV Channel Control                
+                div(class="col-4")
+                    button(type='button' id="powerOffBtn" name="powerOffBtn"
+                        class='btn btn-danger btn-lg'                         
+                        value="poweroff"
+                        onClick='showChannels(0);')  Turn 'em Off
+        div(class="container" style="margin-top: 30px;" id="btnDiv" name="btnDiv")
             each tv in tvList
                 button(type='button' 
-                    class='btn btn-primary' 
-                    style='margin-left: 5px;'
+                    class='btn btn-primary btn-lg' 
+                    style='margin-left: 30px; margin-bottom: 30px;'
                     onClick='showChannels(' + tv.tvNumber + ');') TV # #{tv.tvNumber}
         form(action="gotoChannelsPage" method="POST")
             input(type="hidden" id="selectedTV" name="selectedTV" value="")
