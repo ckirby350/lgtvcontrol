@@ -7,6 +7,8 @@ html
             include ../public/stylesheets/bootstrap.min.css
         script
             include ../public/javascripts/channelfuncs.js
+        script.
+            selectedTVNums = [#{selectedTVList}];
     body(style="margin-left: 5px; margin-top: 10px;")        
         main#main
         div(class="container")
@@ -18,23 +20,26 @@ html
                         button(type='button' 
                             class='btn btn-primary btn-lg' 
                             value="Back to TV Select Menu") Return to TV Select Menu
-        div(class="container" style='margin-top:30px;' id='btnDiv')            
-            each channel in channelList  
-                if channel.channelId == currentChannelID
-                    button(type='button' 
-                        class='btn btn-success btn-lg' 
-                        style='margin-left: 30px; margin-bottom: 30px;'
-                            onClick='selectChannel("' + channel.channelId + '");') #{channel.channelMode} #{channel.channelNumber}
-                else 
-                    button(type='button' 
-                        class='btn btn-primary btn-lg'
-                        style='margin-left: 30px; margin-bottom: 30px;' 
-                            onClick='selectChannel("' + channel.channelId + '");') #{channel.channelMode} #{channel.channelNumber}
-                      
+        div(class="container" style='margin-top:30px;' id='btnDiv')    
+            div(class="row")   
+                div(class="col-4")     
+                    each channel in channelList  
+                        button(type='button' 
+                            class=(channel.channelId == currentChannelID ? 'btn btn-success btn-lg' : 'btn btn-primary btn-lg') 
+                            style='margin-left: 30px; margin-bottom: 30px;'                            
+                                onClick='selectChannel("' + channel.channelId + '");') #{channel.channelMode} #{channel.channelNumber}
+                div(class="col-8")                             
+                    each tv in tvList   
+                        button(type='button' 
+                            class=(selectedTVList.includes(tv.tvNumber) ? 'btn btn-success btn-lg' : 'btn btn-primary btn-lg') 
+                            style='margin-left: 30px; margin-bottom: 30px;'
+                            value=tv.tvNumber
+                                onClick='selectTV(this, ' + tv.tvNumber + ');') TV # #{tv.tvNumber}         
                 
             
         form(action="changeChannel" method="POST")
-                input(type="hidden" id="channelID" name="channelID" value="#{currentChannelID}")
+                input(type="hidden" id="channelID" name="channelID" value="")
+                input(type="hidden" id="tvNumsFld" name="tvNumsFld" value="")
 
 
             

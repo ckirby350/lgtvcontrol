@@ -19,10 +19,17 @@ html
                         value="poweroff"
                         onClick='showChannels(0);')  Turn 'em Off
         div(class="container" style="margin-top: 30px;" id="btnDiv" name="btnDiv")
-            each tv in tvList
-                button(type='button' 
-                    class='btn btn-primary btn-lg' 
-                    style='margin-left: 30px; margin-bottom: 30px;'
-                    onClick='showChannels(' + tv.tvNumber + ');') TV # #{tv.tvNumber}
-        form(action="gotoChannelsPage" method="POST")
-            input(type="hidden" id="selectedTV" name="selectedTV" value="")
+            each tvChunk in tvList
+                div(class="row")   
+                    each tv in tvChunk
+                        if (tv.tvNumber == "EMPTY")
+                            div(class="col-sm")
+                        else 
+                            div(class="col-sm")
+                                button(type='button' 
+                                    class='btn btn-primary btn-lg' 
+                                    style='margin-left: 30px; margin-bottom: 30px;'
+                                    onClick='showChannels(' + tv.tvNumber + ');') TV # #{tv.tvNumber}         
+
+            form(action="gotoChannelsPage" method="POST")
+                input(type="hidden" id="selectedTV" name="selectedTV" value="")

@@ -1,3 +1,4 @@
+require('./vars.js');
 const express = require('express');
 
 const app = express();
@@ -5,12 +6,36 @@ var path = require('path');
 var indexRouter = require('./routes/index');
 var channelsRouter = require('./routes/channels');
 var bodyParser = require('body-parser');
+const e = require('express');
 var lgtv;
 var currentSelectedTV;
 var getChannelsCalled = false;
 var getCurrentChannelCalled = false;
 var currentChannelID;
 var alreadySent = false;
+var tvListNumberOfColumnsToShow = 6;
+var selectedTVList = [];
+
+var chunk = []
+var chunkCnt = -1;
+var mainCnt = 0;
+for(var i = 0; i < tvListObj.length; i++) {
+    chunkCnt++;
+    chunk[chunkCnt] = tvListObj[i];
+    if (chunkCnt == (tvListNumberOfColumnsToShow - 1)) {
+        chunkedTVList[mainCnt] = chunk;
+        chunkCnt = -1;
+        chunk = [];
+        mainCnt++;
+    }
+}
+if (chunkCnt > -1) {
+    while (chunkCnt < (tvListNumberOfColumnsToShow - 1)) {    
+        chunkCnt++;
+        chunk[chunkCnt] = {'ipAddress': "0.0.0.0",'tvNumber' : "EMPTY"}
+    }
+    chunkedTVList[mainCnt] = chunk;
+}
 
 app.use(bodyParser.urlencoded({extended: false}));
 app.set('view engine', 'pug');
@@ -21,22 +46,36 @@ app.use('/channels', channelsRouter);
 
 app.get("/returnToMain", (req,res) => {
     lgtv.disconnect();
-    res.render('index', { tvList : tvListObj });
+    res.render('index', { tvList : chunkedTVList });
 })
 
 app.post("/changeChannel", (req,res) => {
     console.log("Changing channel to " + req.body.channelID);
+    selectedTVList = req.body.tvNumsFld.split(",");
+    console.log("selected TVs:" + req.body.tvNumsFld + " selectedTVList=" + selectedTVList);
+    if (selectedTVList && selectedTVList.length > 0) {        
+        if (selectedTVList.length == 1 && selectedTVList.includes(currentSelectedTV)) {
+            console.log("just change this current TVs channel");
+        } else {
+            console.log("change a few or other TV....");
+        }
+    } else {
+        console.log("no TV picked to change channel for");
+    }
     lgtv.request('ssap://tv/openChannel', {channelId: req.body.channelID});    
-    res.render('channels', { selectedTV : currentSelectedTV, channelList : lgtv.currentChannelList.channelList, currentChannelID : req.body.channelID });
+    res.render('channels', { selectedTV : currentSelectedTV, tvList : tvListObj, selectedTVList : selectedTVList, channelList : lgtv.currentChannelList.channelList, currentChannelID : req.body.channelID });
 })
+
+function changeChannels(tvNumsToChange, newChannelID) {
+
+}
 
 app.get("/close", (req,res) => {
     lgtv.disconnect();
-    res.render('index', { tvList : tvListObj });
+    res.render('index', { tvList : chunkedTVList });
 })
 
 function readyToShowChannels() {
-    //if (!getChannelsCalled && !getCurrentChannelCalled) {
     if (lgtv.currentChannelList && (typeof lgtv.currentChannelList !== "undefined")
         && lgtv.currentChannelList.channelList && (typeof lgtv.currentChannelList.channelList !== "undefined")
         && lgtv.currentChannelList.channelList.length > 0 && getCurrentChannelCalled) {
@@ -70,20 +109,22 @@ app.post("/gotoChannelsPage", (req,mainRes) => {
     var tv;    
     var selectedChannelNum;   
     //console.log('selectedTV=' + req.body.selectedTV);
-    for(var i = 0; i < tvListObj.length; i++) {
+    for(var i = 0; i < tvListObj.length; i++) {        
         tv = tvListObj[i];
         if (req.body.selectedTV == "0") {
             console.log("Shutting down TV " + tv.tvNumber);
             powerOff(tv.ipAddress);           
         } else {
             if (tv.tvNumber == req.body.selectedTV) {            
-                currentSelectedTV = req.body.selectedTV;            
+                currentSelectedTV = req.body.selectedTV;  
+                selectedTVList = [];
+                selectedTVList[0] = req.body.selectedTV;  
                 break;
             }
         }
     }
     if (req.body.selectedTV == "0") {
-        mainRes.render('index', { tvList : tvListObj });
+        mainRes.render('index', { tvList : chunkedTVList });
         return;
     }
     console.log("selectedTV IP=" + tv.ipAddress);
@@ -94,7 +135,7 @@ app.post("/gotoChannelsPage", (req,mainRes) => {
     lgtv.on('error', function (err) {
         console.log(err);
         lgtv.disconnect();
-        mainRes.render('index', { tvList : tvListObj });
+        mainRes.render('index', { tvList : chunkedTVList });
     });
     
     lgtv.on('connecting', function () {
@@ -112,7 +153,8 @@ app.post("/gotoChannelsPage", (req,mainRes) => {
             if (readyToShowChannels() && !alreadySent) {
                 alreadySent = true;
                 console.log("ready from channel list");
-                mainRes.render('channels', { selectedTV : currentSelectedTV, channelList : lgtv.currentChannelList.channelList, currentChannelID : currentChannelID });
+                console.log("selectedTVList1=" + selectedTVList);
+                mainRes.render('channels', { selectedTV : currentSelectedTV, tvList : tvListObj, selectedTVList : selectedTVList, channelList : lgtv.currentChannelList.channelList, currentChannelID : currentChannelID });
             }
             console.log("channelList length=" + lgtv.currentChannelList.channelList.length);
             console.log("Channel List:");            
@@ -125,9 +167,10 @@ app.post("/gotoChannelsPage", (req,mainRes) => {
             currentChannelID = res.channelId;
             getCurrentChannelCalled = true;
             if (readyToShowChannels() && !alreadySent) {
-                console.log("ready from current channel");
                 alreadySent = true;
-                mainRes.render('channels', { selectedTV : currentSelectedTV, channelList : lgtv.currentChannelList.channelList, currentChannelID : currentChannelID });
+                console.log("ready from current channel");                
+                console.log("selectedTVList1=" + selectedTVList);
+                mainRes.render('channels', { selectedTV : currentSelectedTV, tvList : tvListObj, selectedTVList : selectedTVList, channelList : lgtv.currentChannelList.channelList, currentChannelID : currentChannelID });
             }
             console.log("Current Channel: " + res.channelModeName + ' ' + res.channelNumber + ' id=' + res.channelId);
  
@@ -153,7 +196,7 @@ module.exports = app;
 
 /*** 
 app.get('/', (req,res) => {
-    res.render('index', { tvList : tvListObj });
+    res.render('index', { tvList : chunkedTVList });
 })
 ***/
 
