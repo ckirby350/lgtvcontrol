@@ -3,10 +3,8 @@ html
     head        
         meta(charset='UTF-8')        
         title LGTV Channel Control - Channel List
-        style
-            include ../public/stylesheets/bootstrap.min.css
-        script
-            include ../public/javascripts/channelfuncs.js
+        link(rel='stylesheet', href='../stylesheets/bootstrap.min.css', type='text/css' )      
+        script(src="../javascripts/channelfuncs.js")        
         script.
             selectedTVNums = [#{selectedTVList}];
     body(style="margin-left: 5px; margin-top: 10px;")        

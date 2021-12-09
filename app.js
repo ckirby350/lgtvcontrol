@@ -15,6 +15,7 @@ var currentChannelID;
 var alreadySent = false;
 var tvListNumberOfColumnsToShow = 6;
 var selectedTVList = [];
+var changingChannel = false;
 
 var chunk = []
 var chunkCnt = -1;
@@ -40,34 +41,95 @@ if (chunkCnt > -1) {
 app.use(bodyParser.urlencoded({extended: false}));
 app.set('view engine', 'pug');
 app.set('views', '.' + path.sep + 'views');
+app.use(express.static(path.join(__dirname, 'public')));
+
+app.use(express.static(path.join(__dirname, '/public')));
+app.use(express.static('/public'));
 
 app.use('/', indexRouter);
 app.use('/channels', channelsRouter);
 
 app.get("/returnToMain", (req,res) => {
-    lgtv.disconnect();
+    if (lgtv && lgtv != "undefined") {
+        lgtv.disconnect();
+    }
     res.render('index', { tvList : chunkedTVList });
 })
 
-app.post("/changeChannel", (req,res) => {
-    console.log("Changing channel to " + req.body.channelID);
+
+app.post("/changeChannel", (req,res) => {    
     selectedTVList = req.body.tvNumsFld.split(",");
-    console.log("selected TVs:" + req.body.tvNumsFld + " selectedTVList=" + selectedTVList);
-    if (selectedTVList && selectedTVList.length > 0) {        
+    //console.log("selected TVs:" + req.body.tvNumsFld + " selectedTVList=" + selectedTVList);
+    if (selectedTVList && selectedTVList.length > 0 && selectedTVList[0] != "") {        
         if (selectedTVList.length == 1 && selectedTVList.includes(currentSelectedTV)) {
-            console.log("just change this current TVs channel");
+            //console.log("just change this current TVs channel");
+            console.log("Changing channel to " + req.body.channelID);
+            lgtv.request('ssap://tv/openChannel', {channelId: req.body.channelID});
         } else {
-            console.log("change a few or other TV....");
+            //console.log("change a few or other TV....");
+            lgtv.disconnect();
+            changeChannels(selectedTVList, req.body.channelID);
         }
     } else {
         console.log("no TV picked to change channel for");
     }
-    lgtv.request('ssap://tv/openChannel', {channelId: req.body.channelID});    
     res.render('channels', { selectedTV : currentSelectedTV, tvList : tvListObj, selectedTVList : selectedTVList, channelList : lgtv.currentChannelList.channelList, currentChannelID : req.body.channelID });
 })
 
-function changeChannels(tvNumsToChange, newChannelID) {
+app.get("/changeChannels", (req,res) => {
+    //console.log(req.query.tvNums);
+    //console.log(req.query.channelID);
+    var newChannelID = req.query.channelID;
+    selectedTVList = req.query.tvNums.split(",");
+    if (selectedTVList && selectedTVList.length > 0 && selectedTVList[0] != "" && newChannelID && newChannelID != "") { 
+        changeChannels(selectedTVList, newChannelID);
+    } else {
+        console.log("Null/Blank tvNums and/or channelID parameters!!!");
+    }
+    res.render('index', { tvList : chunkedTVList });
+});
 
+function changeTVChannel(tvIPAddr, newChannelID) {
+    changingChannel = true;
+    console.log("Changing TV IP " + tvIPAddr + " to channel " + newChannelID);
+    var xlgtv;
+    xlgtv = require('./master.js')({
+        url: 'ws://' + tvIPAddr + ':3000',
+        timeout: 8000,
+        reconnect: 0
+    });
+
+    xlgtv.on('error', function (err) {
+        console.log(err);
+        xlgtv.disconnect();        
+        changingChannel = false;
+    });    
+    
+    xlgtv.on('connect', function () {
+        xlgtv.request('ssap://tv/openChannel', {channelId: newChannelID}, function (err) {
+            xlgtv.disconnect();
+            changingChannel = false;
+        });
+    });      
+}
+
+function okToChangeChannel(tvIPAddr, newChannelID) {
+    //console.log("okToChangeChannel tvIPAddr=" + tvIPAddr + " changingChannel=" + changingChannel);
+    if (changingChannel) {
+        setTimeout(okToChangeChannel, 1000, tvIPAddr, newChannelID);
+        return;
+    }
+    changeTVChannel(tvIPAddr, newChannelID);
+}
+
+function changeChannels(tvNumsToChange, newChannelID) {
+    var tv;   
+    for (var i = 0; i < tvListObj.length; i++) { 
+        tv = tvListObj[i];
+        if (tvNumsToChange.includes(tv.tvNumber)) {
+            okToChangeChannel(tv.ipAddress, newChannelID);         
+        }
+    }  
 }
 
 app.get("/close", (req,res) => {
@@ -85,6 +147,16 @@ function readyToShowChannels() {
     console.log("not ready!");
     return false;    
 }
+
+app.get("/shutdown", (req,res) => {
+    var tv;   
+    for (var i = 0; i < tvListObj.length; i++) { 
+        tv = tvListObj[i];
+        console.log("Shutting down TV " + tv.tvNumber);
+        powerOff(tv.ipAddress);     
+    }
+    res.render('index', { tvList : chunkedTVList });
+});
 
 function powerOff(tvIPAddress) {
     var xlgtv;
@@ -129,7 +201,9 @@ app.post("/gotoChannelsPage", (req,mainRes) => {
     }
     console.log("selectedTV IP=" + tv.ipAddress);
     lgtv = require('./master.js')({
-        url: 'ws://' + tv.ipAddress + ':3000'
+        url: 'ws://' + tv.ipAddress + ':3000',
+        timeout: 8000,
+        reconnect: 0
     });
 
     lgtv.on('error', function (err) {
@@ -152,8 +226,7 @@ app.post("/gotoChannelsPage", (req,mainRes) => {
             getChannelsCalled = true;
             if (readyToShowChannels() && !alreadySent) {
                 alreadySent = true;
-                console.log("ready from channel list");
-                console.log("selectedTVList1=" + selectedTVList);
+                console.log("ready from channel list");                
                 mainRes.render('channels', { selectedTV : currentSelectedTV, tvList : tvListObj, selectedTVList : selectedTVList, channelList : lgtv.currentChannelList.channelList, currentChannelID : currentChannelID });
             }
             console.log("channelList length=" + lgtv.currentChannelList.channelList.length);
@@ -168,14 +241,10 @@ app.post("/gotoChannelsPage", (req,mainRes) => {
             getCurrentChannelCalled = true;
             if (readyToShowChannels() && !alreadySent) {
                 alreadySent = true;
-                console.log("ready from current channel");                
-                console.log("selectedTVList1=" + selectedTVList);
+                console.log("ready from current channel");
                 mainRes.render('channels', { selectedTV : currentSelectedTV, tvList : tvListObj, selectedTVList : selectedTVList, channelList : lgtv.currentChannelList.channelList, currentChannelID : currentChannelID });
             }
             console.log("Current Channel: " + res.channelModeName + ' ' + res.channelNumber + ' id=' + res.channelId);
- 
-            //selectedChannelNum = Number(selectedChannel);
-            //lgtv.request('ssap://tv/openChannel', {channelId: lgtv.currentChannelList.channelList[selectedChannelNum].channelId});
         });         
         return;
     });

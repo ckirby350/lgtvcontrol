@@ -3,21 +3,25 @@ html
     head        
         meta(charset='UTF-8')        
         title LGTV Channel Control
-        style
-            include ../public/stylesheets/bootstrap.min.css
-        script
-            include ../public/javascripts/homefunctions.js
+        link(rel='stylesheet', href='../stylesheets/bootstrap.min.css', type='text/css' )      
+        script(src="../javascripts/homefunctions.js")
+        script(src="../javascripts/jquery-3.6.0.min.js")
     body(style="margin-left: 5px; margin-top: 10px;")        
         main#main
         div(class="container")
             div(class="row justify-content-between")
                 div(class="col-4")
                     h3 LGTV Channel Control                
-                div(class="col-4")
+                div(class="col-8" style="text-align: right;")
                     button(type='button' id="powerOffBtn" name="powerOffBtn"
-                        class='btn btn-danger btn-lg'                         
+                        class='btn btn-danger btn-lg'  
+                        style="margin-right: 20px;"                       
                         value="poweroff"
-                        onClick='showChannels(0);')  Turn 'em Off
+                        onClick='showChannels(0);') Turn 'em Off
+                    button(type='button' id="healthChkBtn" name="healthChkBtn"
+                        class='btn btn-danger btn-lg'                         
+                        value="healthchk"
+                        onClick='runHealthCheck();') Health Check 
         div(class="container" style="margin-top: 30px;" id="btnDiv" name="btnDiv")
             each tvChunk in tvList
                 div(class="row")   
@@ -27,6 +31,8 @@ html
                         else 
                             div(class="col-sm")
                                 button(type='button' 
+                                    id='tv' + tv.tvNumber + 'Btn'
+                                    name='tv' + tv.tvNumber + 'Btn'
                                     class='btn btn-primary btn-lg' 
                                     style='margin-left: 30px; margin-bottom: 30px;'
                                     onClick='showChannels(' + tv.tvNumber + ');') TV # #{tv.tvNumber}         
