@@ -61,15 +61,8 @@ app.post("/changeChannel", (req,res) => {
     selectedTVList = req.body.tvNumsFld.split(",");
     //console.log("selected TVs:" + req.body.tvNumsFld + " selectedTVList=" + selectedTVList);
     if (selectedTVList && selectedTVList.length > 0 && selectedTVList[0] != "") {        
-        if (selectedTVList.length == 1 && selectedTVList.includes(currentSelectedTV)) {
-            //console.log("just change this current TVs channel");
-            console.log("Changing channel to " + req.body.channelID);
-            lgtv.request('ssap://tv/openChannel', {channelId: req.body.channelID});
-        } else {
-            //console.log("change a few or other TV....");
-            lgtv.disconnect();
-            changeChannels(selectedTVList, req.body.channelID);
-        }
+        lgtv.disconnect();
+        changeChannels(selectedTVList, req.body.channelID);
     } else {
         console.log("no TV picked to change channel for");
     }

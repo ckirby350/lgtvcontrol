@@ -5,8 +5,7 @@ function showChannels(tvNum) {
             return;
         } 
     }
-    document.getElementById("healthChkBtn").style.visibility = "hidden";
-    document.getElementById("powerOffBtn").style.visibility = "hidden";
+    document.getElementById("topBtnDiv").style.visibility = "hidden";    
     document.getElementById("btnDiv").style.visibility = "hidden";
     document.getElementById("selectedTV").value = tvNum;
     document.forms[0].submit();
@@ -20,13 +19,27 @@ function runHealthCheck() {
         "method": "GET"
       })
       .done(function(data) {
+            var btnNameStr = "";
+            var localTV;
+            for (var i = 0; i < localChunkedTVList.length; i++) { 
+                for (var cl = 0; cl < localChunkedTVList[i].tvChunk; cl++) {
+                    localTV = localChunkedTVList[i].tvChunk[cl];
+                    if (tv.tvNumber == "EMPTY") {
+                        continue;
+                    }
+                    btnNameStr = "tv" + tv.tvNumber + "Btn";
+                    document.getElementById(btnNameStr).className = "btn btn-primary btn-lg";
+                }
+            }
             if (data.badTVList && data.badTVList.length > 0 && data.badTVList[0] != "") {
-                var badListStr = "";
+                var badListStr = "";                
                 for (var i = 0; i < data.badTVList.length; i++) { 
                     if (i > 0) {
                         badListStr = badListStr + ", ";
                     }
                     badListStr = badListStr + data.badTVList[i];
+                    btnNameStr = "tv" + data.badTVList[i] + "Btn";                    
+                    document.getElementById(btnNameStr).className = "btn btn-warning btn-lg";
                 }
                 window.alert("Could not connect to " + data.badTVList.length + " TVs:\n" + badListStr);
             } else {

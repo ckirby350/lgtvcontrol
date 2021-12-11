@@ -8,12 +8,12 @@ router.get('/', function(req, res, next) {
 });
 
 function tvChecked(tvNum) {
-    console.log("Check for TV # " + tvNum + " complete...");
+    //console.log("Check for TV # " + tvNum + " complete...");
     var tvnumSpot = listOfTVsToCheckConnection.indexOf(tvNum);
     if (tvnumSpot > -1) {
         listOfTVsToCheckConnection.splice(tvnumSpot, 1);
     }
-    console.log("listtocheck len=" + listOfTVsToCheckConnection.length + " badTVList len=" + badTVList.length);
+    //console.log("listtocheck len=" + listOfTVsToCheckConnection.length + " badTVList len=" + badTVList.length);
 }
 
 function connCheck(tvIPAddr, tvNum) {
@@ -39,6 +39,7 @@ function connCheck(tvIPAddr, tvNum) {
 
 router.get("/healthCheck", (req,res) => {
     var tv;   
+    badTVList = [];
     for (var i = 0; i < tvListObj.length; i++) { 
         tv = tvListObj[i];
         listOfTVsToCheckConnection[listOfTVsToCheckConnection.length] = tv.tvNumber; 
@@ -52,7 +53,12 @@ function checkToReturn(res) {
         setTimeout(checkToReturn, 1000, res);
         return;
     }
-    res.json({badTVList: badTVList });
+    var sortedList = [];
+    for (var i=0; i < badTVList.length; i++) {
+        sortedList[sortedList.length] = Number(badTVList[i]);
+    }
+    sortedList.sort(function(a, b){return a-b});
+    res.json({badTVList: sortedList });
 }
 
 module.exports = router;

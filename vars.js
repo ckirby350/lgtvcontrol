@@ -30,7 +30,7 @@ tvListObj = [
         'tvNumber' : "7"
     },
     {
-        'ipAddress': "10.10.223.33",
+        'ipAddress': "192.168.254.23",
         'tvNumber' : "8"
     },
     {
@@ -62,15 +62,15 @@ tvListObj = [
         'tvNumber' : "15"
     },
     {
-        'ipAddress': "10.10.223.33",
+        'ipAddress': "192.168.254.23",
         'tvNumber' : "16"
     },
     {
-        'ipAddress': "192.168.254.23",
+        'ipAddress': "10.10.23.8",
         'tvNumber' : "17"
     },
     {
-        'ipAddress': "10.10.223.33",
+        'ipAddress': "192.168.254.23",
         'tvNumber' : "18"
     },
     {
