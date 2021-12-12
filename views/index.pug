@@ -3,6 +3,7 @@ html
     head        
         meta(charset='UTF-8')        
         title LGTV Channel Control
+        link(rel="icon" href="../stylesheets/favicon.ico")
         link(rel='stylesheet', href='../stylesheets/bootstrap.min.css', type='text/css' )  
         script.
             var localChunkedTVList = !{JSON.stringify(tvList)}   
@@ -15,12 +16,13 @@ html
                 div(class="col-4")
                     h3 LGTV Channel Control                     
                 div(class="col-8" id="topBtnDiv" name="topBtnDiv" style="text-align: right;")
-                    button(type='button' 
-                        id='scriptsBtn'
-                        name='scriptsBtn'
-                        class='btn btn-primary btn-lg' 
-                        style="margin-right: 20px;"
-                        onClick='') Scripts                     
+                    a(href="/scripts")
+                        button(type='button' 
+                            id='scriptsBtn'
+                            name='scriptsBtn'
+                            class='btn btn-primary btn-lg' 
+                            style="margin-right: 20px;"
+                            onClick='') Scripts                     
                     button(type='button' id="powerOffBtn" name="powerOffBtn"
                         class='btn btn-danger btn-lg'  
                         style="margin-right: 20px;"                       

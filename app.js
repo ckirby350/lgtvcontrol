@@ -5,6 +5,7 @@ const app = express();
 var path = require('path');
 var indexRouter = require('./routes/index');
 var channelsRouter = require('./routes/channels');
+var scriptsRouter = require('./routes/scripts');
 var bodyParser = require('body-parser');
 const e = require('express');
 var lgtv;
@@ -48,6 +49,7 @@ app.use(express.static('/public'));
 
 app.use('/', indexRouter);
 app.use('/channels', channelsRouter);
+app.use('/scripts', scriptsRouter);
 
 app.get("/returnToMain", (req,res) => {
     if (lgtv && lgtv != "undefined") {

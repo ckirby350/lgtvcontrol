@@ -1,0 +1,57 @@
+doctype html  
+html   
+    head        
+        meta(charset='UTF-8')        
+        title LGTV Channel Control - Scripts
+        link(rel="icon" href="../stylesheets/favicon.ico")
+        link(rel='stylesheet', href='../stylesheets/bootstrap.min.css', type='text/css' )          
+        script(src="../javascripts/scriptfuncs.js")
+        script(src="../javascripts/jquery-3.6.0.min.js")
+    body(style="margin-left: 5px; margin-top: 10px;")        
+        main#main
+        div(class="container" id="mainBtnDiv" name="mainBtnDiv")
+            div(class="row justify-content-between")
+                div(class="col-4")
+                    h3 Batch Scripts      
+                div(class="col-8" id="topBtnDiv" name="topBtnDiv" style="text-align: right;") 
+                    a(href="/scripts/new") 
+                        button(type='button' id='addScriptBtn' name='addScriptBtn'
+                            class='btn btn-primary btn-lg'
+                            style="margin-right: 20px;" 
+                            value="addScript") Add New        
+                    a(href="/returnToMain")
+                        button(type='button' 
+                            class='btn btn-primary btn-lg' 
+                            value="Back to TV Select Menu") Return to TV Select Menu
+        div(class="container" id="scriptTblDiv" name="scriptTblDiv" style="margin-top: 30px;")
+            table(class="table")
+                thead(class="thead-light")
+                    tr
+                        th(scope="col") Name
+                        th(scope="col") TV #s
+                        th(scope="col") Channel
+                        th(scope="col") Runtime 
+                        th
+                    tbody
+                      each script in scriptObjs
+                        tr(id=script.id)   
+                            th(scope="row")= script.name
+                            td= script.tvList
+                            td= script.channelNum
+                            td= script.runDT
+                            td
+                                button(type='button' 
+                                    class='btn btn-primary btn-lg' 
+                                    style='margin-left: 30px;'                            
+                                    onClick='') Schedule 
+                                button(type='button' 
+                                    class='btn btn-primary btn-lg' 
+                                    style='margin-left: 30px;'                            
+                                    onClick='') Run Now 
+                                button(type='button' 
+                                    class='btn btn-primary btn-lg' 
+                                    style='margin-left: 30px;'                            
+                                    onClick="deleteScript(this,'" + script.id + "');") Delete                     
+                        
+            form(action="gotoChannelsPage" method="POST")
+                input(type="hidden" id="selectedTV" name="selectedTV" value="")

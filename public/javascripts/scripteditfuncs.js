@@ -1,0 +1,91 @@
+var scriptSelectedTVNums = [];
+var fetchingChannels = false;
+var tvChannelsWereRetrieved = false;
+
+function saveScript() {
+    if (scriptSelectedTVNums.length < 1 || document.getElementById("selectedChannelID").value.length < 1) {
+        window.alert("You have to pick at least 1 TV and 1 Channel for the script.")
+        return;
+    }
+    document.getElementById("mainBtnDiv").style.visibility = "hidden";
+    var tvStr = "";
+    for (var i=0; i < scriptSelectedTVNums.length; i++) {
+        if (i > 0) {
+            tvStr = tvStr + ",";
+        }
+        tvStr = tvStr + scriptSelectedTVNums[i];
+    }
+    document.getElementById("selectedTVNums").value = tvStr;
+    //window.alert("selectedTVNums len=" + scriptSelectedTVNums.length + " selectedChannelIDs len=" + scriptSelectedChannelIDs.length);
+    document.getElementById("scriptForm").submit();
+}
+
+function selectChannel(btn, xchannelID) {
+    //window.alert("selected channelID=" + xchannelID);
+    var xbtn;
+    for (var i = 0; i < 1000; i++) {
+        xbtn = document.getElementById('channelBtn' + i);
+        if (xbtn && xbtn != "undefined") {
+            xbtn.className = "btn btn-primary btn-lg";
+        }
+    }
+    btn.className = "btn btn-success btn-lg";
+    document.getElementById("selectedChannelID").value = xchannelID;
+}
+
+
+function selectTV(btn, tvnum) {
+    //window.alert("btn.className.indexOf(primary)=" + btn.className.indexOf("primary") + " scriptSelectedTVNums len=" + scriptSelectedTVNums.length);
+    if (btn.className.indexOf("primary") > -1) {
+        btn.className = "btn btn-success btn-lg";
+        scriptSelectedTVNums[scriptSelectedTVNums.length] = tvnum;
+    } else {
+        btn.className = "btn btn-primary btn-lg";
+        var tvnumSpot = scriptSelectedTVNums.indexOf(tvnum);
+        if (tvnumSpot > -1) {
+            scriptSelectedTVNums.splice(tvnumSpot, 1);
+        }
+        if (scriptSelectedTVNums.length < 1) {
+            var xbtn;
+            tvChannelsWereRetrieved = false;
+            for (var i = 0; i < 1000; i++) {
+                xbtn = document.getElementById('channelBtn' + i);
+                if (xbtn && xbtn != "undefined") {
+                    xbtn.remove();
+                }
+            }
+            return;
+        }
+    }
+    //window.alert("selectedTVNums len=" + selectedTVNums.length + " tvChannelsWereRetrieved=" + tvChannelsWereRetrieved);
+    if (!tvChannelsWereRetrieved && !fetchingChannels) {
+        fetchingChannels = true;
+        $.ajax({
+            "url": "/scripts/getChannels/" + tvnum,
+            "method": "GET"
+          })
+          .done(function(data) {
+                tvChannelsWereRetrieved = true;
+                fetchingChannels = false;
+                //window.alert("returned from getChannels ajax call!! data.scriptAvailChannelList.length=" + data.scriptAvailChannelList.length);                
+                var xchannel;
+                var channelBtn;
+                var channelDiv = document.getElementById("channelDiv");
+                for (var i = 0; i < data.scriptAvailChannelList.length; i++) {
+                    xchannel = data.scriptAvailChannelList[i];
+                    channelBtn = document.createElement("input");
+                    channelBtn.type = "button";
+                    channelBtn.id = "channelBtn" + i;
+                    channelBtn.innerHTML = xchannel.channelMode + " " + xchannel.channelNumber;
+                    channelBtn.value = xchannel.channelMode + " " + xchannel.channelNumber;
+                    channelBtn.className = 'btn btn-primary btn-lg';
+                    channelBtn.style.marginBottom = '30px';
+                    channelBtn.style.marginLeft = '30px';
+                    channelBtn.setAttribute("onClick", "javascript: selectChannel(this,'" + xchannel.channelId + "');");
+                    channelDiv.appendChild(channelBtn);
+                } 
+
+          });
+    }
+
+}
