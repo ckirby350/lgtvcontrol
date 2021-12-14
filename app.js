@@ -1,6 +1,8 @@
 require('./vars.js');
 const express = require('express');
-
+const schedule = require('node-schedule');
+const fh = require("./filehandler");
+const ch = require("./channelhandler");
 const app = express();
 var path = require('path');
 var indexRouter = require('./routes/index');
@@ -8,6 +10,8 @@ var channelsRouter = require('./routes/channels');
 var scriptsRouter = require('./routes/scripts');
 var bodyParser = require('body-parser');
 const e = require('express');
+var fs = require('fs');
+const { nextTick } = require('process');
 var lgtv;
 var currentSelectedTV;
 var getChannelsCalled = false;
@@ -16,7 +20,6 @@ var currentChannelID;
 var alreadySent = false;
 var tvListNumberOfColumnsToShow = 6;
 var selectedTVList = [];
-var changingChannel = false;
 
 var chunk = []
 var chunkCnt = -1;
@@ -39,6 +42,23 @@ if (chunkCnt > -1) {
     chunkedTVList[mainCnt] = chunk;
 }
 
+function mainRunAndDeleteScript(scriptID, runIt) {
+    //console.log("mainrunanddel id=" + scriptID + " runit=" + runIt);
+    var scriptObj = scriptObjs.find(obj => {
+        return obj.id === scriptID
+    })
+    //console.log("   scriptObj tvList=" + scriptObj.tvList + " channelID=" + scriptObj.channelID);
+    if (runIt) {
+        ch.changeChannels(scriptObj.tvList, scriptObj.channelID);
+    }
+    scriptObjs = scriptObjs.filter(function( obj ) {
+        return obj.id !== scriptID;
+    });    
+    fileWritten = false;
+    fh.writeSched();  
+
+}
+
 app.use(bodyParser.urlencoded({extended: false}));
 app.set('view engine', 'pug');
 app.set('views', '.' + path.sep + 'views');
@@ -58,13 +78,12 @@ app.get("/returnToMain", (req,res) => {
     res.render('index', { tvList : chunkedTVList });
 })
 
-
 app.post("/changeChannel", (req,res) => {    
     selectedTVList = req.body.tvNumsFld.split(",");
     //console.log("selected TVs:" + req.body.tvNumsFld + " selectedTVList=" + selectedTVList);
     if (selectedTVList && selectedTVList.length > 0 && selectedTVList[0] != "") {        
         lgtv.disconnect();
-        changeChannels(selectedTVList, req.body.channelID);
+        ch.changeChannels(selectedTVList, req.body.channelID);
     } else {
         console.log("no TV picked to change channel for");
     }
@@ -77,55 +96,12 @@ app.get("/changeChannels", (req,res) => {
     var newChannelID = req.query.channelID;
     selectedTVList = req.query.tvNums.split(",");
     if (selectedTVList && selectedTVList.length > 0 && selectedTVList[0] != "" && newChannelID && newChannelID != "") { 
-        changeChannels(selectedTVList, newChannelID);
+        ch.changeChannels(selectedTVList, newChannelID);
     } else {
         console.log("Null/Blank tvNums and/or channelID parameters!!!");
     }
     res.render('index', { tvList : chunkedTVList });
 });
-
-function changeTVChannel(tvIPAddr, newChannelID) {
-    changingChannel = true;
-    console.log("Changing TV IP " + tvIPAddr + " to channel " + newChannelID);
-    var xlgtv;
-    xlgtv = require('./master.js')({
-        url: 'ws://' + tvIPAddr + ':3000',
-        timeout: 8000,
-        reconnect: 0
-    });
-
-    xlgtv.on('error', function (err) {
-        console.log(err);
-        xlgtv.disconnect();        
-        changingChannel = false;
-    });    
-    
-    xlgtv.on('connect', function () {
-        xlgtv.request('ssap://tv/openChannel', {channelId: newChannelID}, function (err) {
-            xlgtv.disconnect();
-            changingChannel = false;
-        });
-    });      
-}
-
-function okToChangeChannel(tvIPAddr, newChannelID) {
-    //console.log("okToChangeChannel tvIPAddr=" + tvIPAddr + " changingChannel=" + changingChannel);
-    if (changingChannel) {
-        setTimeout(okToChangeChannel, 1000, tvIPAddr, newChannelID);
-        return;
-    }
-    changeTVChannel(tvIPAddr, newChannelID);
-}
-
-function changeChannels(tvNumsToChange, newChannelID) {
-    var tv;   
-    for (var i = 0; i < tvListObj.length; i++) { 
-        tv = tvListObj[i];
-        if (tvNumsToChange.includes(tv.tvNumber)) {
-            okToChangeChannel(tv.ipAddress, newChannelID);         
-        }
-    }  
-}
 
 app.get("/close", (req,res) => {
     lgtv.disconnect();
@@ -255,13 +231,50 @@ app.post("/gotoChannelsPage", (req,mainRes) => {
     
 })
 
-
 module.exports = app;
 
-/*** 
-app.get('/', (req,res) => {
-    res.render('index', { tvList : chunkedTVList });
-})
-***/
-
 app.listen(3000, () => console.log("Listening on port 3000"));
+
+fileRead = false;
+fh.readSched();
+
+if (!fileRead) {
+    setTimeout(initSched, 1000);
+    return;
+}
+
+function initSched() {
+    var scriptObj;
+    var job;
+    var jobSpot = -1;
+    if (scriptObjs && scriptObjs.length > 0) {
+        for (var schedCnt=0; schedCnt < scriptObjs.length; schedCnt++) {
+            scriptObj = scriptObjs[schedCnt];
+            if (scriptObj.runDT && scriptObj.runDT != "") {
+                now = new Date();
+                schedDat = new Date(Number(scriptObj.runDT.substring(0,4)), 
+                    (Number(scriptObj.runDT.substring(5,7)) - 1),
+                    Number(scriptObj.runDT.substring(8,10)), 
+                    Number(scriptObj.runDT.substring(11,13)), 
+                    Number(scriptObj.runDT.substring(14)), 
+                    0);
+                //console.log("now=" + now.getTime() + " schedDat=" + schedDat.getTime());
+                if (now.getTime() > schedDat.getTime()) {
+                    //in the past so delete it
+                    mainRunAndDeleteScript(scriptObj.id, false);
+                    continue;
+                }
+                job = schedule.scheduleJob(schedDat, function() {
+                    mainRunAndDeleteScript(scriptObj.id, true);
+                });  
+                jobObj = { 'id' : scriptObj.id, 'job' : job};
+                jobList.push(jobObj);     
+            }
+        }
+    }
+}
+
+
+
+
+

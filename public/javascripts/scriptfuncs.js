@@ -32,7 +32,7 @@ function deleteTableRow(rowid) {
 
 function deleteScript(btn, scriptID) {
     btn.disabled = true;
-    window.alert("going to delete: " + scriptID);
+    //window.alert("going to delete: " + scriptID);
     deleteTableRow(scriptID);
     $.ajax({
         "url": "/scripts/delete/" + scriptID,

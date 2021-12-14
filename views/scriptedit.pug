@@ -14,14 +14,14 @@ html
                 $( "#runDTdateFld" ).datepicker();
                 } 
             );
-    body(style="margin-left: 5px; margin-top: 10px;")        
+    body(style="margin-left: 5px; margin-top: 10px;" onload="initPage('" + currentScript.tvList + "', '" + currentScript.channelID + "');")        
         main#main
         div(class="container" id="mainBtnDiv" name="mainBtnDiv")
             div(class="row justify-content-between")
                 div(class="col-4")
                     h3 Batch Scripts      
                 div(class="col-8" id="topBtnDiv" name="topBtnDiv" style="text-align: right;") 
-                    button(type='button' id='addScriptBtn' name='addScriptBtn'
+                    button(type='button' id='saveScriptBtn' name='saveScriptBtn'
                         class='btn btn-primary btn-lg'
                         style="margin-right: 20px;" 
                         value="saveScript"
@@ -121,14 +121,14 @@ html
                         select(id="runDTampmFld" name="runDTampmFld" class="form-control")
                             option(selected) AM
                             option PM
-            input(type="hidden" id="scriptID" name="scriptID" value=currentScript.scriptID)
+            input(type="hidden" id="scriptID" name="scriptID" value=currentScript.id)
             input(type="hidden" id="selectedTVNums" name="selectedTVNums" value="")
             input(type="hidden" id="selectedChannelID" name="selectedChannelID" value="")
         div(class="container" style='margin-top:10px; margin-left: 0px;' id='btnDiv')    
             div(class="row")   
                 div(class="col-8") 
                     each tv in tvList   
-                        button(type='button' 
+                        button(type='button' id="tvBtn" + tv.tvNumber
                             class=(scriptSelectedTVNums.includes(tv.tvNumber) ? 'btn btn-success btn-lg' : 'btn btn-primary btn-lg') 
                             style='margin-right: 30px; margin-bottom: 30px;'
                             value=tv.tvNumber

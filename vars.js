@@ -1,4 +1,10 @@
+fileRead = false;
+fileWritten = true;
+scriptObjs = [];
 chunkedTVList = [];
+jobList = [];
+
+fileName = "../data/scriptsched.json"
 
 tvListObj = [
     {

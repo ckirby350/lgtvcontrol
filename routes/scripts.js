@@ -1,48 +1,16 @@
 require('../vars.js');
+const app = require('../app')
 const uuid = require('uuid').v4;
+const fh = require("../filehandler");
+const ch = require("../channelhandler");
+const schedule = require('node-schedule');
 var express = require('express');
 var fs = require('fs');
 var router = express.Router();
-var scriptObjs = [];
 var currentScript;
-var fileName = "../data/scriptsched.json"
-var fileRead = false;
-var fileWritten = true;
 var scriptSelectedTVNums = [];
 var channelsReturned = false;
 var scriptAvailChannelList = [];
-
-function readSched() {
-    if (!fileWritten) {
-        setTimeout(readSched);
-        return;
-    }
-    fs.readFile(fileName, function(err, data) {
-        if (err) {
-            fileRead = true;
-            console.log("Can't read " + fileName);
-            return;
-        }
-        if (data && data != "undefine" && data != "" && data.length > 0) {
-            scriptObjs = JSON.parse(data);
-        }
-        fileRead = true;
-        console.log("sched data: " + data); 
-    });
-}
-
-function writeSched() {    
-    fs.writeFile(fileName, JSON.stringify(scriptObjs, null, 4), err => {
-        fileWritten= true;
-        // Checking for errors
-        if (err) {
-            console.log("Can't write " + fileName);
-            return; 
-        }
-       
-        //console.log("Done writing"); // Success
-    });
-}
 
 router.post("/save", (req,res) => { 
     var scriptObj;   
@@ -57,6 +25,7 @@ router.post("/save", (req,res) => {
     console.log("            date=" + req.body.runDTdateFld + " hr=" + req.body.runDThrFld + " min=" + req.body.runDTmnFld + " ampm=" + req.body.runDTampmFld);
     
     var tvArray = req.body.selectedTVNums.split(",");
+    runDTStr = "";
     for (var i=0; i < tvArray.length; i++) {
         if (i > 0) {
             tvIPListStr = tvIPListStr + ",";
@@ -69,8 +38,45 @@ router.post("/save", (req,res) => {
         }
         tvIPListStr = tvIPListStr + tv.ipAddress;
     }
+    if (req.body.runDTdateFld && req.body.runDTdateFld != "undefined" && req.body.runDTdateFld != "") {
+        runDTDate = new Date(req.body.runDTdateFld);
+        hr = Number(req.body.runDThrFld);
+        if (req.body.runDTampmFld == "AM" && hr == 12) {
+            hr = 0;
+        }
+        if (req.body.runDTampmFld == "PM" && hr != 12) {
+            hr = hr + 12;
+        }
+        runDTDate.setHours(hr);
+        runDTDate.setMinutes(req.body.runDTmnFld);
+        yr = runDTDate.getFullYear();        
+        mo = "";
+        if ((runDTDate.getMonth() + 1) < 10) { mo = "0"; }
+        mo = mo + (runDTDate.getMonth() + 1);
+        da = "";
+        if (runDTDate.getDate() < 10) { da = "0"; }
+        da = da + runDTDate.getDate();
+        hr = "";
+        if (runDTDate.getHours() < 10) { hr = "0"; }
+        hr = hr + runDTDate.getHours();
+        mn = 0;
+        if (runDTDate.getMinutes() < 10) { mn = "0"; }
+        mn = mn + runDTDate.getMinutes();
+        runDTStr = yr + "-" + mo + "-" + da + " " + hr + ":" + mn;
+        //console.log("runDTStr=" + runDTStr);
+
+        schedDat = new Date(Number(yr), (Number(mo) - 1), Number(da), Number(hr), Number(mn), 0);
+        //console.log("schedDat=" + runDTStr);        
+
+        job = schedule.scheduleJob(schedDat, function() {
+            runAndDeleteScript(req.body.scriptID, true);
+        });
+        jobObj = { 'id' : req.body.scriptID, 'job' : job};
+        jobList.push(jobObj);   
+    }
     scriptObj = { 'id' : req.body.scriptID, 'name' : req.body.nameFld, 'tvIPs' : tvIPListStr,
-            'channelNum' : req.body.selectedChannelID, 'tvList' : req.body.selectedTVNums};
+            'channelID' : req.body.selectedChannelID, 'tvList' : req.body.selectedTVNums,
+            'runDT' : runDTStr};
     for (var i=0; i < scriptObjs.length; i++) {
         if (scriptObjs[i].scriptID == scriptObj.id) {
             fndIt = true;
@@ -84,11 +90,27 @@ router.post("/save", (req,res) => {
         scriptObjs.push(scriptObj);
     }
     fileWritten = false;
-    writeSched();
+    fh.writeSched();
     fileRead = false;
-    readSched();
+    fh.readSched();
     checkToRender(res);    
 })
+
+function runAndDeleteScript(scriptID, runIt) {
+    console.log("scripts runanddel id=" + scriptID);
+    var scriptObj = scriptObjs.find(obj => {
+        return obj.id === scriptID
+    })
+    //console.log("   scriptObj tvList=" + scriptObj.tvList + " channelID=" + scriptObj.channelID);
+    if (runIt) {
+        ch.changeChannels(scriptObj.tvList, scriptObj.channelID);
+    }
+    scriptObjs = scriptObjs.filter(function( obj ) {
+        return obj.id !== scriptID;
+    });    
+    fileWritten = false;
+    fh.writeSched();  
+}
 
 function checkToRender(res) {
     if (!fileRead || !fileWritten) {
@@ -101,12 +123,28 @@ function checkToRender(res) {
 
 router.get('/', function(req, res, next) {
     fileRead = false;
-    readSched();
+    fh.readSched();
     checkToRender(res);    
 });
 
+router.get('/scheduleScript', function(req, res, next) {
+    for (var i=0; i < scriptObjs.length; i++) {
+        if (scriptObjs[i].id == req.query.scriptID) {
+            currentScript = { 'id' : uuid(), 'name' : scriptObjs[i].name + "_torun", 
+                'runDT' : '', 'tvIPs' : scriptObjs[i].tvIPs, 'tvList' : scriptObjs[i].tvList,
+                'channelID' : scriptObjs[i].channelID};
+            break;
+        }
+    }    
+    if (currentScript.tvList && currentScript.tvList != "undefined" && currentScript.tvList != "") {
+        scriptSelectedTVNums = currentScript.tvList.split(",");
+    }
+    res.render('scriptedit', { currentScript : currentScript, tvList : tvListObj, scriptSelectedTVNums : scriptSelectedTVNums });
+});
+
 router.get('/new', function(req, res, next) {
-    currentScript = { 'scriptID' : uuid(), 'name' : 'Test Name', 'runDT' : '2021-12-31 11:59:00'};
+    scriptSelectedTVNums = [];
+    currentScript = { 'id' : uuid(), 'name' : '', 'runDT' : '', 'tvIPs' : '', 'tvList' : '', 'channelID' : ''};
     res.render('scriptedit', { currentScript : currentScript, tvList : tvListObj, scriptSelectedTVNums : scriptSelectedTVNums });
 });
 
@@ -128,9 +166,18 @@ router.get("/delete/:scriptID", (req,res) => {
     scriptObjs = scriptObjs.filter(function( obj ) {
         return obj.id !== req.params.scriptID;
     });
+    for (var jobcnt=0; jobcnt < jobList.length; jobcnt++) {
+        jobObj = jobList[jobcnt];
+        if (jobObj.id == req.params.scriptID) {
+            jobObj.job.cancel();
+        }
+    }
+    jobList = jobList.filter(function( obj ) {
+        return obj.id !== req.params.scriptID;
+    });
     res.json({scriptObjs: scriptObjs });    
     fileWritten = false;
-    writeSched();    
+    fh.writeSched();    
 });
 
 router.get("/getChannels/:tvNum", (req,mainRes) => {
@@ -160,7 +207,7 @@ router.get("/getChannels/:tvNum", (req,mainRes) => {
     
     xlgtv.on('connect', function () {
         console.log('connected to TV# ' + tv.tvNumber);
-        xlgtv.request('ssap://system.notifications/createToast', {message: 'Hello World!'});
+        //xlgtv.request('ssap://system.notifications/createToast', {message: 'Channel List coming!'});
         xlgtv.subscribe('ssap://tv/getChannelList', function (err, res) {  
             scriptAvailChannelList = res.channelList   
             channelsReturned = true;  

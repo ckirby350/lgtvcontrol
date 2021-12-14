@@ -37,21 +37,23 @@ html
                         tr(id=script.id)   
                             th(scope="row")= script.name
                             td= script.tvList
-                            td= script.channelNum
+                            td= script.channelID
                             td= script.runDT
                             td
-                                button(type='button' 
-                                    class='btn btn-primary btn-lg' 
-                                    style='margin-left: 30px;'                            
-                                    onClick='') Schedule 
-                                button(type='button' 
-                                    class='btn btn-primary btn-lg' 
-                                    style='margin-left: 30px;'                            
-                                    onClick='') Run Now 
+                                a(href=(script.runDT && script.runDT != "" ? "" : "/scripts/scheduleScript?scriptID=" + script.id))
+                                    button(type='button' 
+                                        class=(script.runDT && script.runDT != "" ? 'btn btn-secondary btn-lg' : 'btn btn-primary btn-lg') 
+                                        style='margin-left: 30px;' 
+                                        disabled=(script.runDT && script.runDT != "" ? true : false)                         
+                                        onClick='') Schedule 
+                                a(href="/changeChannels?channelID=" + script.channelID + "&tvNums=" + script.tvList)
+                                    button(type='button' 
+                                        class='btn btn-primary btn-lg' 
+                                        style='margin-left: 30px;'                            
+                                        onClick="this.style.visibility = 'hidden');") Run Now 
                                 button(type='button' 
                                     class='btn btn-primary btn-lg' 
                                     style='margin-left: 30px;'                            
                                     onClick="deleteScript(this,'" + script.id + "');") Delete                     
                         
-            form(action="gotoChannelsPage" method="POST")
-                input(type="hidden" id="selectedTV" name="selectedTV" value="")
+            
