@@ -42,8 +42,10 @@ router.get("/healthCheck", (req,res) => {
     badTVList = [];
     for (var i = 0; i < tvListObj.length; i++) { 
         tv = tvListObj[i];
-        listOfTVsToCheckConnection[listOfTVsToCheckConnection.length] = tv.tvNumber; 
-        connCheck(tv.ipAddress, tv.tvNumber);      
+        if (tv.mfg == "LG") {
+            listOfTVsToCheckConnection[listOfTVsToCheckConnection.length] = tv.tvNumber; 
+            connCheck(tv.ipAddress, tv.tvNumber);
+        }      
     }  
     checkToReturn(res);
 })

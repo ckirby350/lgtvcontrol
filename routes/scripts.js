@@ -192,33 +192,39 @@ router.get("/getChannels/:tvNum", (req,mainRes) => {
             break;
         }
     }
-    xlgtv = require('../master.js')({
-        url: 'ws://' + tv.ipAddress + ':3000',
-        timeout: 8000,
-        reconnect: 0
-    });
+    if (tv.mfg == "LG") {
+        xlgtv = require('../master.js')({
+            url: 'ws://' + tv.ipAddress + ':3000',
+            timeout: 8000,
+            reconnect: 0
+        });
 
-    xlgtv.on('error', function (err) {
-        channelsReturned = true;
-        console.log(err);
-        xlgtv.disconnect();
-        mainRes.render('index', { tvList : chunkedTVList });
-    });    
-    
-    xlgtv.on('connect', function () {
-        console.log('connected to TV# ' + tv.tvNumber);
-        //xlgtv.request('ssap://system.notifications/createToast', {message: 'Channel List coming!'});
-        xlgtv.subscribe('ssap://tv/getChannelList', function (err, res) {  
-            scriptAvailChannelList = res.channelList   
-            channelsReturned = true;  
-            xlgtv.disconnect();               
-        });   
-    });
-    
-    
-    xlgtv.on('prompt', function () {
-        console.log('please authorize on TV');
-    });
+        xlgtv.on('error', function (err) {
+            channelsReturned = true;
+            console.log(err);
+            xlgtv.disconnect();
+            mainRes.render('index', { tvList : chunkedTVList });
+        });    
+        
+        xlgtv.on('connect', function () {
+            console.log('connected to TV# ' + tv.tvNumber);
+            //xlgtv.request('ssap://system.notifications/createToast', {message: 'Channel List coming!'});
+            xlgtv.subscribe('ssap://tv/getChannelList', function (err, res) {  
+                scriptAvailChannelList = res.channelList;  
+                channelsReturned = true;  
+                xlgtv.disconnect();               
+            });   
+        });
+        
+        
+        xlgtv.on('prompt', function () {
+            console.log('please authorize on TV');
+        });
+    }
+    if (tv.mfg == "VIZIO") {
+        scriptAvailChannelList = vizioChannelList;
+        channelsReturned = true;  
+    }
 
     checkToReturn(mainRes);
 });

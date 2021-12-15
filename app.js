@@ -14,6 +14,7 @@ var fs = require('fs');
 const { nextTick } = require('process');
 var lgtv;
 var currentSelectedTV;
+var currentChannelList = [];
 var getChannelsCalled = false;
 var getCurrentChannelCalled = false;
 var currentChannelID;
@@ -81,13 +82,15 @@ app.get("/returnToMain", (req,res) => {
 app.post("/changeChannel", (req,res) => {    
     selectedTVList = req.body.tvNumsFld.split(",");
     //console.log("selected TVs:" + req.body.tvNumsFld + " selectedTVList=" + selectedTVList);
-    if (selectedTVList && selectedTVList.length > 0 && selectedTVList[0] != "") {        
-        lgtv.disconnect();
+    if (selectedTVList && selectedTVList.length > 0 && selectedTVList[0] != "") {  
+        if (lgtv && lgtv != "undefined") {      
+            lgtv.disconnect();
+        }
         ch.changeChannels(selectedTVList, req.body.channelID);
     } else {
         console.log("no TV picked to change channel for");
     }
-    res.render('channels', { selectedTV : currentSelectedTV, tvList : tvListObj, selectedTVList : selectedTVList, channelList : lgtv.currentChannelList.channelList, currentChannelID : req.body.channelID });
+    res.render('channels', { selectedTV : currentSelectedTV, tvList : tvListObj, selectedTVList : selectedTVList, channelList : currentChannelList, currentChannelID : req.body.channelID });
 })
 
 app.get("/changeChannels", (req,res) => {
@@ -171,64 +174,86 @@ app.post("/gotoChannelsPage", (req,mainRes) => {
         return;
     }
     console.log("selectedTV IP=" + tv.ipAddress);
-    lgtv = require('./master.js')({
-        url: 'ws://' + tv.ipAddress + ':3000',
-        timeout: 8000,
-        reconnect: 0
-    });
 
-    lgtv.on('error', function (err) {
-        console.log(err);
-        lgtv.disconnect();
-        mainRes.render('index', { tvList : chunkedTVList });
-    });
-    
-    lgtv.on('connecting', function () {
-        console.log('connecting...');
-    });
-    
-    lgtv.on('connect', function () {
-        console.log('connected to TV# ' + tv.tvNumber);
-        alreadySent = false;
-        getChannelsCalled = false;
-        getCurrentChannelCalled = false;
-        lgtv.subscribe('ssap://tv/getChannelList', function (err, res) {  
-            lgtv.currentChannelList = res;
-            getChannelsCalled = true;
-            if (readyToShowChannels() && !alreadySent) {
-                alreadySent = true;
-                console.log("ready from channel list");                
-                mainRes.render('channels', { selectedTV : currentSelectedTV, tvList : tvListObj, selectedTVList : selectedTVList, channelList : lgtv.currentChannelList.channelList, currentChannelID : currentChannelID });
-            }
-            console.log("channelList length=" + lgtv.currentChannelList.channelList.length);
-            console.log("Channel List:");            
-            for (var chCnt=0; chCnt < lgtv.currentChannelList.channelList.length; chCnt++) {
-                console.log(' (' + chCnt + ') ' + lgtv.currentChannelList.channelList[chCnt].channelMode + ' ' + lgtv.currentChannelList.channelList[chCnt].channelNumber + ' id=' + lgtv.currentChannelList.channelList[chCnt].channelId);
-            }
+    if (tv.mfg == "LG") {
+        lgtv = require('./master.js')({
+            url: 'ws://' + tv.ipAddress + ':3000',
+            timeout: 8000,
+            reconnect: 0
         });
-                        
-        lgtv.subscribe('ssap://tv/getCurrentChannel', function (err, res) {
-            currentChannelID = res.channelId;
-            getCurrentChannelCalled = true;
-            if (readyToShowChannels() && !alreadySent) {
-                alreadySent = true;
-                console.log("ready from current channel");
-                mainRes.render('channels', { selectedTV : currentSelectedTV, tvList : tvListObj, selectedTVList : selectedTVList, channelList : lgtv.currentChannelList.channelList, currentChannelID : currentChannelID });
+
+        lgtv.on('error', function (err) {
+            console.log(err);
+            lgtv.disconnect();
+            mainRes.render('index', { tvList : chunkedTVList });
+        });
+        
+        lgtv.on('connecting', function () {
+            console.log('connecting...');
+        });
+        
+        lgtv.on('connect', function () {
+            console.log('connected to TV# ' + tv.tvNumber);
+            alreadySent = false;
+            getChannelsCalled = false;
+            getCurrentChannelCalled = false;
+            lgtv.subscribe('ssap://tv/getChannelList', function (err, res) {  
+                lgtv.currentChannelList = res;
+                getChannelsCalled = true;                
+                if (readyToShowChannels() && !alreadySent) {
+                    currentChannelList = lgtv.currentChannelList.channelList;
+                    alreadySent = true;
+                    console.log("ready from channel list");                
+                    mainRes.render('channels', { selectedTV : currentSelectedTV, tvList : tvListObj, selectedTVList : selectedTVList, channelList : currentChannelList, currentChannelID : currentChannelID });
+                }
+                console.log("channelList length=" + lgtv.currentChannelList.channelList.length);
+                console.log("Channel List:");            
+                for (var chCnt=0; chCnt < lgtv.currentChannelList.channelList.length; chCnt++) {
+                    console.log(' (' + chCnt + ') ' + lgtv.currentChannelList.channelList[chCnt].channelMode + ' ' + lgtv.currentChannelList.channelList[chCnt].channelNumber + ' id=' + lgtv.currentChannelList.channelList[chCnt].channelId);
+                }
+            });
+                            
+            lgtv.subscribe('ssap://tv/getCurrentChannel', function (err, res) {
+                currentChannelID = res.channelId;
+                getCurrentChannelCalled = true;                
+                if (readyToShowChannels() && !alreadySent) {
+                    currentChannelList = lgtv.currentChannelList.channelList;
+                    alreadySent = true;
+                    console.log("ready from current channel");
+                    mainRes.render('channels', { selectedTV : currentSelectedTV, tvList : tvListObj, selectedTVList : selectedTVList, channelList : currentChannelList, currentChannelID : currentChannelID });
+                }
+                console.log("Current Channel: " + res.channelModeName + ' ' + res.channelNumber + ' id=' + res.channelId);
+            });         
+            return;
+        });
+
+        lgtv.on('prompt', function () {
+            console.log('please authorize on TV');
+        });
+        
+        lgtv.on('close', function () {
+            console.log('close');            
+        });
+    }  
+    if (tv.mfg == "VIZIO") {
+        let smartcast = require('./vizio');
+        let viziotv = new smartcast(tv.ipAddress, tv.key);
+
+        viziotv.settings.channels.get().then((data) => {
+            //console.log(data);
+            channelList = data;
+            for (var i=0; i < channelList.ITEMS.length; i++) {
+              if (channelList.ITEMS[i].CNAME == "current_channel") {
+                currentChannelNum = channelList.ITEMS[i].VALUE;
+                break;
+              } 
             }
-            console.log("Current Channel: " + res.channelModeName + ' ' + res.channelNumber + ' id=' + res.channelId);
-        });         
-        return;
-    });
-    
-    
-    lgtv.on('prompt', function () {
-        console.log('please authorize on TV');
-    });
-    
-    lgtv.on('close', function () {
-        console.log('close');            
-    });
-    
+            currentChannelList = vizioChannelList;
+            console.log("currentChannelNum=" + currentChannelNum);
+            mainRes.render('channels', { selectedTV : currentSelectedTV, tvList : tvListObj, selectedTVList : selectedTVList, channelList : currentChannelList, currentChannelID : currentChannelNum });
+
+        });
+    }
 })
 
 module.exports = app;
