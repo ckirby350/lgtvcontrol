@@ -127,28 +127,35 @@ app.get("/shutdown", (req,res) => {
     for (var i = 0; i < tvListObj.length; i++) { 
         tv = tvListObj[i];
         console.log("Shutting down TV " + tv.tvNumber);
-        powerOff(tv.ipAddress);     
+        powerOff(tv.ipAddress, tv.mfg, tv.key);     
     }
     res.render('index', { tvList : chunkedTVList });
 });
 
-function powerOff(tvIPAddress) {
+function powerOff(tvIPAddress, mfg, key) {    
     var xlgtv;
-    xlgtv = require('./master.js')({
-        url: 'ws://' + tvIPAddress + ':3000'
-    });
-
-    xlgtv.on('error', function (err) {
-        console.log(err);
-        xlgtv.disconnect();        
-    });    
-    
-    xlgtv.on('connect', function () {
-        //console.log('connected to TV# for power off...');
-        xlgtv.request('ssap://system/turnOff', function (err, res) {
-            xlgtv.disconnect();
+    if (mfg == "LG") {
+        xlgtv = require('./master.js')({
+            url: 'ws://' + tvIPAddress + ':3000'
         });
-    });            
+
+        xlgtv.on('error', function (err) {
+            console.log(err);
+            xlgtv.disconnect();        
+        });    
+        
+        xlgtv.on('connect', function () {
+            //console.log('connected to TV# for power off...');
+            xlgtv.request('ssap://system/turnOff', function (err, res) {
+                xlgtv.disconnect();
+            });
+        });    
+    }
+    if (mfg == "VIZIO") {
+        let smartcast = require('./vizio');
+        let viziotv = new smartcast(tvIPAddress, key);
+        viziotv.control.power.off();
+    }        
 }
 
 app.post("/gotoChannelsPage", (req,mainRes) => {
@@ -159,7 +166,7 @@ app.post("/gotoChannelsPage", (req,mainRes) => {
         tv = tvListObj[i];
         if (req.body.selectedTV == "0") {
             console.log("Shutting down TV " + tv.tvNumber);
-            powerOff(tv.ipAddress);           
+            powerOff(tv.ipAddress, tv.mfg, tv.key);           
         } else {
             if (tv.tvNumber == req.body.selectedTV) {            
                 currentSelectedTV = req.body.selectedTV;  
