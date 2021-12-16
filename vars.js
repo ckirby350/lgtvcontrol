@@ -10,6 +10,8 @@ vizioChannelList = [
     { 'channelId' : '47-1', 'channelMode' : 'Cable', 'channelNumber' : '47-1'}
     , { 'channelId' : '47-2', 'channelMode' : 'Cable', 'channelNumber' : '47-2'}
     , { 'channelId' : '47-3', 'channelMode' : 'Cable', 'channelNumber' : '47-3'}
+    , { 'channelId' : '47-4', 'channelMode' : 'Cable', 'channelNumber' : '47-4'}
+    , { 'channelId' : '47-5', 'channelMode' : 'Cable', 'channelNumber' : '47-5'}
     , { 'channelId' : '58-1', 'channelMode' : 'Cable', 'channelNumber' : '58-1'}
     , { 'channelId' : '58-2', 'channelMode' : 'Cable', 'channelNumber' : '58-2'}
 ];
