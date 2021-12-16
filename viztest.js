@@ -36,7 +36,7 @@ function goToChannel(channelNum) {
   tv.control.channel.up().then((value) => {
     console.log("back from ch up");
     console.log(JSON.stringify(value));
-    sleep(500); 
+    sleep(100); 
     console.log("getcurrchannel...");
     tv.settings.channels.get().then((data) => {
       console.log("back from getcurrchannel");
@@ -56,7 +56,7 @@ function goToChannel(channelNum) {
   });
 }
 
-goToChannel("47-5");
+goToChannel("47-1");
 
 /*** 
 sleep(2000);

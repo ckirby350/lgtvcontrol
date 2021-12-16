@@ -1,6 +1,7 @@
 require('./vars.js');
 var changingChannel = false;
 var okToNavigate = true;
+var viziotv;
 
 function changeTVChannel(tvIPAddr, mfg, key, newChannelID) {
     changingChannel = true;
@@ -28,7 +29,9 @@ function changeTVChannel(tvIPAddr, mfg, key, newChannelID) {
     } 
     if (mfg == "VIZIO") {
         let smartcast = require('./vizio');
-        let viziotv = new smartcast(tvIPAddr, key);
+        viziotv = new smartcast(tvIPAddr, key);
+        goToVizioChannel(newChannelID);
+        /*** Original key navigation way
         okToNavigate = true;
         navigate(viziotv, "ok");
         for (var i=0; i < newChannelID.length; i++) {
@@ -69,7 +72,41 @@ function changeTVChannel(tvIPAddr, mfg, key, newChannelID) {
             }
         }
         pressEnter(viziotv);
+        ***/
     } 
+}
+
+function sleep(milliseconds) {
+    const date = Date.now();
+    let currentDate = null;
+    do {
+      currentDate = Date.now();
+    } while (currentDate - date < milliseconds);
+  }
+
+function goToVizioChannel(channelNum) {
+    //console.log("sending ch up...");    
+    viziotv.control.channel.up().then((value) => {
+      //console.log("back from ch up");
+      //console.log(JSON.stringify(value));
+      sleep(400); 
+      //console.log("getcurrchannel...");
+      viziotv.settings.channels.get().then((data) => {
+        //console.log("back from getcurrchannel");
+        //console.log(data);
+        channelList = data;
+        for (var i=0; i < channelList.ITEMS.length; i++) {
+          if (channelList.ITEMS[i].CNAME == "current_channel") {
+            currentChannelNum = channelList.ITEMS[i].VALUE;
+            break;
+          } 
+        }
+        //console.log("currentChannelNum=" + currentChannelNum);
+        if (currentChannelNum != channelNum) {
+            goToVizioChannel(channelNum);
+        }
+      });
+    });
 }
 
 function navigate(viztv, direction) {
