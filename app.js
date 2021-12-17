@@ -81,7 +81,7 @@ app.get("/returnToMain", (req,res) => {
 
 app.post("/changeChannel", (req,res) => {    
     selectedTVList = req.body.tvNumsFld.split(",");
-    //console.log("selected TVs:" + req.body.tvNumsFld + " selectedTVList=" + selectedTVList);
+    //console.log("selected TVs:" + req.body.tvNumsFld + " selectedTVList=" + selectedTVList + " new channelid=" + req.body.channelID);
     if (selectedTVList && selectedTVList.length > 0 && selectedTVList[0] != "") {  
         if (lgtv && lgtv != "undefined") {      
             lgtv.disconnect();

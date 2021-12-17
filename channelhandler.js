@@ -85,6 +85,57 @@ function sleep(milliseconds) {
   }
 
 function goToVizioChannel(channelNum) {
+    var code1 = 0;
+    var code2 = 0;
+    var code3 = 0;
+    var code4 = 0;
+    code1 = 48 + Number(channelNum.substring(0,1));
+    if (channelNum.length > 1) {
+        if (channelNum.substring(1,2) == "-") {
+            code2 = 45;
+        } else {
+            code2 = 48 + Number(channelNum.substring(1,2));
+        }
+    }
+    if (channelNum.length > 2) {
+        if (channelNum.substring(2,3) == "-") {
+            code3 = 45;
+        } else {
+            code3 = 48 + Number(channelNum.substring(2,3));
+        }
+    }
+    if (channelNum.length > 3) {
+        if (channelNum.substring(3,4) == "-") {
+            code4 = 45;
+        } else {
+            code4 = 48 + Number(channelNum.substring(3,4));
+        }
+    }
+    viziotv.control.keyCommand(0, code1, 'KEYPRESS').then((value) => {
+        if (code2 > 0) {
+            sleep(900);  
+            viziotv.control.keyCommand(0, code2, 'KEYPRESS').then((value) => { 
+                if (code3 > 0) {
+                    sleep(900); 
+                    changingChannel = false;
+                    viziotv.control.keyCommand(0, code3, 'KEYPRESS').then((value) => { 
+                        if (code4 > 0) {
+                            sleep(900); 
+                            viziotv.control.keyCommand(0, code4, 'KEYPRESS');
+                        }
+                    });
+                } else {
+                    changingChannel = false;
+                }
+            });
+        } else {
+            changingChannel = false;
+        }    
+    });
+}
+
+/*** tried with ch up until I got there - FAIL
+function goToVizioChannel(channelNum) {
     //console.log("sending ch up...");    
     viziotv.control.channel.up().then((value) => {
       //console.log("back from ch up");
@@ -108,6 +159,7 @@ function goToVizioChannel(channelNum) {
       });
     });
 }
+***/
 
 function navigate(viztv, direction) {
     if (!okToNavigate) {
@@ -266,7 +318,7 @@ function pressEnter(viztv) {
 }
 
 function okToChangeChannel(tvIPAddr, mfg, key, newChannelID) {
-    //console.log("okToChangeChannel tvIPAddr=" + tvIPAddr + " changingChannel=" + changingChannel);
+    console.log("okToChangeChannel tvIPAddr=" + tvIPAddr + " changingChannel=" + changingChannel);
     if (changingChannel) {
         setTimeout(okToChangeChannel, 1000, tvIPAddr, mfg, key, newChannelID);
         return;

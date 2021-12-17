@@ -22,6 +22,28 @@ var okToChangeChannelAgain = true;
 var codeList = [52, 55, 45, 49];
 var currSpot = 0;
 
+//goToChannel("58-2");
+
+tv.control.keyCommand(0, 52, 'KEYPRESS').then((value) => {
+  console.log("back from 4 press");
+  console.log(value);
+  sleep(900);  
+  tv.control.keyCommand(0, 55, 'KEYPRESS').then((value) => {
+    console.log("back from 7 press");
+    console.log(value);
+    sleep(900);  
+    tv.control.keyCommand(0, 45, 'KEYPRESS').then((value) => {
+      console.log("back from - press");
+      console.log(value);
+      sleep(900);  
+      tv.control.keyCommand(0, 49, 'KEYPRESS');
+    });
+  }); 
+  
+});
+
+
+
 function sleep(milliseconds) {
   const date = Date.now();
   let currentDate = null;
@@ -30,13 +52,23 @@ function sleep(milliseconds) {
   } while (currentDate - date < milliseconds);
 }
 
+/***
+function goToChannel(channelNum) {
+  tv.control.keyCommand(0, 52, 'KEYPRESS');
+  sleep(1000); 
+  tv.control.keyCommand(0, 55, 'KEYPRESS');
+
+}
+***/
+
+
 function goToChannel(channelNum) {
   console.log("sending ch up...");
   //tv.control.keyCommand(8, 1, 'KEYPRESS').then((value) => {
   tv.control.channel.up().then((value) => {
     console.log("back from ch up");
     console.log(JSON.stringify(value));
-    sleep(100); 
+    sleep(500); 
     console.log("getcurrchannel...");
     tv.settings.channels.get().then((data) => {
       console.log("back from getcurrchannel");
@@ -56,7 +88,10 @@ function goToChannel(channelNum) {
   });
 }
 
-goToChannel("47-1");
+//goToChannel("47-1");
+
+
+
 
 /*** 
 sleep(2000);
