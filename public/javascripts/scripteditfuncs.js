@@ -1,10 +1,10 @@
 var scriptSelectedTVNums = [];
 var fetchingChannels = false;
 var tvChannelsWereRetrieved = false;
-var selectedChannelID;
 
-function initPage(tvList, channelID) {
-    selectedChannelID = channelID;
+function initPage(tvList, channelID, channelNumber) {  
+    document.getElementById("selectedChannelID").value = channelID;
+    document.getElementById("selectedChannelNumber").value = channelNumber;  
     if (tvList && tvList != "undefined" && tvList != "") {
         tvNumArray = tvList.split(",");
         firstBtn = document.getElementById("tvBtn" + tvNumArray[0]);
@@ -34,18 +34,21 @@ function saveScript() {
     document.getElementById("scriptForm").submit();
 }
 
-function selectChannel(btn, xchannelID) {
+function selectChannel(btn, xchannelID, xchannelNum) {
     //window.alert("selected channelID=" + xchannelID + " btn.id=" + btn.id + " type=" + btn.type + " tagName=" + btn.tagName);
     var ybtn;
-    var ybuttons = document.getElementsByTagName('input');
+    var ybuttons = document.getElementsByTagName('button');
+    //window.alert("ybuttons len=" + ybuttons.length);
     for (let i = 0; i < ybuttons.length; i++) {
         ybtn = ybuttons[i];
+        //window.alert("ybtn id=" + ybtn.id);
         if (ybtn.id.indexOf("channelBtn") > -1) {
             ybtn.className = "btn btn-primary btn-lg";
         }        
     }
     btn.className = "btn btn-success btn-lg";
     document.getElementById("selectedChannelID").value = xchannelID;
+    document.getElementById("selectedChannelNumber").value = xchannelNum;
 }
 
 
@@ -64,6 +67,7 @@ function selectTV(btn, tvnum) {
         if (tvnumSpot > -1) {
             scriptSelectedTVNums.splice(tvnumSpot, 1);
         }
+        /***
         if (scriptSelectedTVNums.length < 1) {
             var xbtn;
             var objectsToRemove = [];
@@ -81,8 +85,10 @@ function selectTV(btn, tvnum) {
             }
             return;
         }
+        ***/
     }
     //window.alert("selectedTVNums len=" + selectedTVNums.length + " tvChannelsWereRetrieved=" + tvChannelsWereRetrieved);
+    /******* used to fetch channels based on TV selected, now just static list from vars
     if (!tvChannelsWereRetrieved && !fetchingChannels) {
         fetchingChannels = true;
         $.ajax({
@@ -114,5 +120,6 @@ function selectTV(btn, tvnum) {
                 }
           });
     }
+    ***/
 
 }

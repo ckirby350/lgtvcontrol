@@ -14,13 +14,14 @@ function selectTV(btn, tvnum) {
 
 }
 
-function selectChannel(channelID) {  
+function selectChannel(channelID, channelNum) {  
     if (!selectedTVNums || selectedTVNums.length < 1 || selectedTVNums[0] == "") {
         window.alert("No TV selected to show this channel. Select at least 1 TV from the right button list.");
         return;
     }  
     document.getElementById("btnDiv").style.visibility = "hidden";
     document.getElementById("channelID").value = channelID;
+    document.getElementById("channelNumber").value = channelNum;
     document.getElementById("tvNumsFld").value = selectedTVNums;    
-    document.forms[0].submit();
+    document.getElementById("changeChannelForm").submit();
 }

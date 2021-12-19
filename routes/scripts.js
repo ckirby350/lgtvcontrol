@@ -21,7 +21,7 @@ router.post("/save", (req,res) => {
     console.log("script save name=" + req.body.nameFld);
     console.log("              id=" + req.body.scriptID);
     console.log("             tvs=" + req.body.selectedTVNums);
-    console.log("        channels=" + req.body.selectedChannelID);
+    console.log("        channel=" + req.body.selectedChannelID + " " + req.body.selectedChannelNumber);
     console.log("            date=" + req.body.runDTdateFld + " hr=" + req.body.runDThrFld + " min=" + req.body.runDTmnFld + " ampm=" + req.body.runDTampmFld);
     
     var tvArray = req.body.selectedTVNums.split(",");
@@ -75,8 +75,8 @@ router.post("/save", (req,res) => {
         jobList.push(jobObj);   
     }
     scriptObj = { 'id' : req.body.scriptID, 'name' : req.body.nameFld, 'tvIPs' : tvIPListStr,
-            'channelID' : req.body.selectedChannelID, 'tvList' : req.body.selectedTVNums,
-            'runDT' : runDTStr};
+            'channelID' : req.body.selectedChannelID, 'channelNumber' : req.body.selectedChannelNumber,
+            'tvList' : req.body.selectedTVNums, 'runDT' : runDTStr};
     for (var i=0; i < scriptObjs.length; i++) {
         if (scriptObjs[i].scriptID == scriptObj.id) {
             fndIt = true;
@@ -103,7 +103,7 @@ function runAndDeleteScript(scriptID, runIt) {
     })
     //console.log("   scriptObj tvList=" + scriptObj.tvList + " channelID=" + scriptObj.channelID);
     if (runIt) {
-        ch.changeChannels(scriptObj.tvList, scriptObj.channelID);
+        ch.changeChannels(scriptObj.tvList, scriptObj.channelID, scriptObj.channelNumber);
     }
     scriptObjs = scriptObjs.filter(function( obj ) {
         return obj.id !== scriptID;
@@ -132,20 +132,20 @@ router.get('/scheduleScript', function(req, res, next) {
         if (scriptObjs[i].id == req.query.scriptID) {
             currentScript = { 'id' : uuid(), 'name' : scriptObjs[i].name + "_torun", 
                 'runDT' : '', 'tvIPs' : scriptObjs[i].tvIPs, 'tvList' : scriptObjs[i].tvList,
-                'channelID' : scriptObjs[i].channelID};
+                'channelID' : scriptObjs[i].channelID, 'channelNumber' : scriptObjs[i].channelNumber};
             break;
         }
     }    
     if (currentScript.tvList && currentScript.tvList != "undefined" && currentScript.tvList != "") {
         scriptSelectedTVNums = currentScript.tvList.split(",");
     }
-    res.render('scriptedit', { currentScript : currentScript, tvList : tvListObj, scriptSelectedTVNums : scriptSelectedTVNums });
+    res.render('scriptedit', { currentScript : currentScript, channelList : staticChannelList, tvList : tvListObj, scriptSelectedTVNums : scriptSelectedTVNums });
 });
 
 router.get('/new', function(req, res, next) {
     scriptSelectedTVNums = [];
-    currentScript = { 'id' : uuid(), 'name' : '', 'runDT' : '', 'tvIPs' : '', 'tvList' : '', 'channelID' : ''};
-    res.render('scriptedit', { currentScript : currentScript, tvList : tvListObj, scriptSelectedTVNums : scriptSelectedTVNums });
+    currentScript = { 'id' : uuid(), 'name' : '', 'runDT' : '', 'tvIPs' : '', 'tvList' : '', 'channelID' : '', 'channelNumber' : ''};
+    res.render('scriptedit', { currentScript : currentScript, channelList : staticChannelList, tvList : tvListObj, scriptSelectedTVNums : scriptSelectedTVNums });
 });
 
 function checkToReturn(res) {
@@ -222,7 +222,7 @@ router.get("/getChannels/:tvNum", (req,mainRes) => {
         });
     }
     if (tv.mfg == "VIZIO") {
-        scriptAvailChannelList = vizioChannelList;
+        scriptAvailChannelList = staticChannelList;
         channelsReturned = true;  
     }
 

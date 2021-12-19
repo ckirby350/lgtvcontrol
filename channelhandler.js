@@ -3,10 +3,30 @@ var changingChannel = false;
 var okToNavigate = true;
 var viziotv;
 
-function changeTVChannel(tvIPAddr, mfg, key, newChannelID) {
+function okToChangeChannel(tvIPAddr, mfg, key, newChannelID, newChannelNumber) {
+    //console.log("okToChangeChannel tvIPAddr=" + tvIPAddr + " changingChannel=" + changingChannel);
+    if (changingChannel) {
+        setTimeout(okToChangeChannel, 1000, tvIPAddr, mfg, key, newChannelID, newChannelNumber);
+        return;
+    }
+    changeTVChannel(tvIPAddr, mfg, key, newChannelID, newChannelNumber);
+}
+
+function changeChannels(tvNumsToChange, newChannelID, newChannelNumber) {
+    var tv;   
+    for (var i = 0; i < tvListObj.length; i++) { 
+        tv = tvListObj[i];
+        if (tvNumsToChange.includes(tv.tvNumber)) {
+            //console.log("ok to change " + tv.ipAddress + " mfg=" + tv.mfg);
+            okToChangeChannel(tv.ipAddress, tv.mfg, tv.key, newChannelID, newChannelNumber);         
+        }
+    }  
+}
+
+function changeTVChannel(tvIPAddr, mfg, key, newChannelID, newChannelNumber) {
     changingChannel = true;
     var xlgtv;
-    console.log("Changing TV IP " + tvIPAddr + " mfg=" + mfg + " to channel " + newChannelID);
+    console.log("Changing TV IP " + tvIPAddr + " mfg=" + mfg + " to channel id=" + newChannelID + " num=" + newChannelNumber);
     if (mfg == "LG") {
         xlgtv = require('./master.js')({
             url: 'ws://' + tvIPAddr + ':3000',
@@ -30,7 +50,7 @@ function changeTVChannel(tvIPAddr, mfg, key, newChannelID) {
     if (mfg == "VIZIO") {
         let smartcast = require('./vizio');
         viziotv = new smartcast(tvIPAddr, key);
-        goToVizioChannel(newChannelID);
+        goToVizioChannel(newChannelNumber);
         /*** Original key navigation way
         okToNavigate = true;
         navigate(viziotv, "ok");
@@ -317,24 +337,5 @@ function pressEnter(viztv) {
     navigate(viztv, "ok");
 }
 
-function okToChangeChannel(tvIPAddr, mfg, key, newChannelID) {
-    console.log("okToChangeChannel tvIPAddr=" + tvIPAddr + " changingChannel=" + changingChannel);
-    if (changingChannel) {
-        setTimeout(okToChangeChannel, 1000, tvIPAddr, mfg, key, newChannelID);
-        return;
-    }
-    changeTVChannel(tvIPAddr, mfg, key, newChannelID);
-}
-
-function changeChannels(tvNumsToChange, newChannelID) {
-    var tv;   
-    for (var i = 0; i < tvListObj.length; i++) { 
-        tv = tvListObj[i];
-        if (tvNumsToChange.includes(tv.tvNumber)) {
-            //console.log("ok to change " + tv.ipAddress + " mfg=" + tv.mfg);
-            okToChangeChannel(tv.ipAddress, tv.mfg, tv.key, newChannelID);         
-        }
-    }  
-}
 
 module.exports = { changeChannels }

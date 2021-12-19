@@ -22,6 +22,8 @@ var alreadySent = false;
 var tvListNumberOfColumnsToShow = 6;
 var selectedTVList = [];
 
+currentChannelList = staticChannelList;
+
 var chunk = []
 var chunkCnt = -1;
 var mainCnt = 0;
@@ -76,7 +78,10 @@ app.get("/returnToMain", (req,res) => {
     if (lgtv && lgtv != "undefined") {
         lgtv.disconnect();
     }
-    res.render('index', { tvList : chunkedTVList });
+    selectedTVList = [];
+    res.render('index', { selectedTV : '', tvList : tvListObj, selectedTVList : selectedTVList, 
+        channelList : staticChannelList, currentChannelID : '', currentChannelNumber : '' });
+    //res.render('index', { tvList : chunkedTVList });
 })
 
 app.post("/changeChannel", (req,res) => {    
@@ -86,24 +91,27 @@ app.post("/changeChannel", (req,res) => {
         if (lgtv && lgtv != "undefined") {      
             lgtv.disconnect();
         }
-        ch.changeChannels(selectedTVList, req.body.channelID);
+        ch.changeChannels(selectedTVList, req.body.channelID, req.body.channelNumber);
     } else {
         console.log("no TV picked to change channel for");
     }
-    res.render('channels', { selectedTV : currentSelectedTV, tvList : tvListObj, selectedTVList : selectedTVList, channelList : currentChannelList, currentChannelID : req.body.channelID });
+    res.render('channels', { selectedTV : currentSelectedTV, tvList : tvListObj, selectedTVList : selectedTVList, channelList : currentChannelList, currentChannelID : req.body.channelID, currentChannelNumber : req.body.channelNumber });
 })
 
 app.get("/changeChannels", (req,res) => {
     //console.log(req.query.tvNums);
     //console.log(req.query.channelID);
     var newChannelID = req.query.channelID;
+    var newChannelNumber = req.query.channelNumber;
     selectedTVList = req.query.tvNums.split(",");
     if (selectedTVList && selectedTVList.length > 0 && selectedTVList[0] != "" && newChannelID && newChannelID != "") { 
-        ch.changeChannels(selectedTVList, newChannelID);
+        ch.changeChannels(selectedTVList, newChannelID, newChannelNumber);
     } else {
         console.log("Null/Blank tvNums and/or channelID parameters!!!");
     }
-    res.render('index', { tvList : chunkedTVList });
+    res.render('index', { selectedTV : '', tvList : tvListObj, selectedTVList : selectedTVList, 
+        channelList : staticChannelList, currentChannelID : newChannelID, currentChannelNumber : newChannelNumber });
+    //res.render('index', { tvList : chunkedTVList });
 });
 
 app.get("/close", (req,res) => {
@@ -154,7 +162,12 @@ function powerOff(tvIPAddress, mfg, key) {
     if (mfg == "VIZIO") {
         let smartcast = require('./vizio');
         let viziotv = new smartcast(tvIPAddress, key);
-        viziotv.control.power.off();
+        var powerPromise = viziotv.control.power.off();
+        powerPromise.then(() => {   
+        }).catch(err => {            
+            //console.log("promise err " + err); 
+        });
+
     }        
 }
 
@@ -177,7 +190,9 @@ app.post("/gotoChannelsPage", (req,mainRes) => {
         }
     }
     if (req.body.selectedTV == "0") {
-        mainRes.render('index', { tvList : chunkedTVList });
+        mainRes.render('index', { selectedTV : '', tvList : tvListObj, selectedTVList : selectedTVList, 
+        channelList : staticChannelList, currentChannelID : '', currentChannelNumber : '' });
+        //mainRes.render('index', { tvList : chunkedTVList });
         return;
     }
     console.log("selectedTV IP=" + tv.ipAddress);
@@ -204,21 +219,28 @@ app.post("/gotoChannelsPage", (req,mainRes) => {
             alreadySent = false;
             getChannelsCalled = false;
             getCurrentChannelCalled = false;
-            lgtv.subscribe('ssap://tv/getChannelList', function (err, res) {  
-                lgtv.currentChannelList = res;
-                getChannelsCalled = true;                
-                if (readyToShowChannels() && !alreadySent) {
-                    currentChannelList = lgtv.currentChannelList.channelList;
-                    alreadySent = true;
-                    console.log("ready from channel list");                
-                    mainRes.render('channels', { selectedTV : currentSelectedTV, tvList : tvListObj, selectedTVList : selectedTVList, channelList : currentChannelList, currentChannelID : currentChannelID });
-                }
-                console.log("channelList length=" + lgtv.currentChannelList.channelList.length);
-                console.log("Channel List:");            
-                for (var chCnt=0; chCnt < lgtv.currentChannelList.channelList.length; chCnt++) {
-                    console.log(' (' + chCnt + ') ' + lgtv.currentChannelList.channelList[chCnt].channelMode + ' ' + lgtv.currentChannelList.channelList[chCnt].channelNumber + ' id=' + lgtv.currentChannelList.channelList[chCnt].channelId);
-                }
-            });
+            if (!staticChannelList || staticChannelList.length < 1) {
+                lgtv.subscribe('ssap://tv/getChannelList', function (err, res) {  
+                    lgtv.currentChannelList = res;
+                    getChannelsCalled = true;     
+        
+                    if (readyToShowChannels() && !alreadySent) {
+                        currentChannelList = lgtv.currentChannelList.channelList;
+                        alreadySent = true;
+                        console.log("ready from channel list");                
+                        mainRes.render('channels', { selectedTV : currentSelectedTV, tvList : tvListObj, selectedTVList : selectedTVList, channelList : currentChannelList, currentChannelID : currentChannelID, currentChannelNumber : currentChannelNumber });
+                    }
+                    console.log("channelList length=" + lgtv.currentChannelList.channelList.length);
+                    console.log("Channel List:");            
+                    for (var chCnt=0; chCnt < lgtv.currentChannelList.channelList.length; chCnt++) {
+                        console.log(' (' + chCnt + ') ' + lgtv.currentChannelList.channelList[chCnt].channelMode + ' ' + lgtv.currentChannelList.channelList[chCnt].channelNumber + ' id=' + lgtv.currentChannelList.channelList[chCnt].channelId);
+                    }
+                });
+            } else {
+                getChannelsCalled = true;
+                currentChannelList = staticChannelList;
+                lgtv.currentChannelList.channelList = staticChannelList;
+            }
                             
             lgtv.subscribe('ssap://tv/getCurrentChannel', function (err, res) {
                 currentChannelID = res.channelId;
@@ -227,7 +249,7 @@ app.post("/gotoChannelsPage", (req,mainRes) => {
                     currentChannelList = lgtv.currentChannelList.channelList;
                     alreadySent = true;
                     console.log("ready from current channel");
-                    mainRes.render('channels', { selectedTV : currentSelectedTV, tvList : tvListObj, selectedTVList : selectedTVList, channelList : currentChannelList, currentChannelID : currentChannelID });
+                    mainRes.render('channels', { selectedTV : currentSelectedTV, tvList : tvListObj, selectedTVList : selectedTVList, channelList : currentChannelList, currentChannelID : currentChannelID, currentChannelNumber : currentChannelNumber });
                 }
                 console.log("Current Channel: " + res.channelModeName + ' ' + res.channelNumber + ' id=' + res.channelId);
             });         
@@ -255,9 +277,9 @@ app.post("/gotoChannelsPage", (req,mainRes) => {
                 break;
               } 
             }
-            currentChannelList = vizioChannelList;
+            currentChannelList = staticChannelList;
             console.log("currentChannelNum=" + currentChannelNum);
-            mainRes.render('channels', { selectedTV : currentSelectedTV, tvList : tvListObj, selectedTVList : selectedTVList, channelList : currentChannelList, currentChannelID : currentChannelNum });
+            mainRes.render('channels', { selectedTV : currentSelectedTV, tvList : tvListObj, selectedTVList : selectedTVList, channelList : currentChannelList, currentChannelID : currentChannelID, currentChannelNumber: currentChannelNumber });
 
         });
     }

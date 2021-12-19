@@ -14,7 +14,7 @@ html
                 $( "#runDTdateFld" ).datepicker();
                 } 
             );
-    body(style="margin-left: 5px; margin-top: 10px;" onload="initPage('" + currentScript.tvList + "', '" + currentScript.channelID + "');")        
+    body(style="margin-left: 5px; margin-top: 10px;" onload="initPage('" + currentScript.tvList + "', '" + currentScript.channelID + "', '" + currentScript.channelNumber + "');")        
         main#main
         div(class="container" id="mainBtnDiv" name="mainBtnDiv")
             div(class="row justify-content-between")
@@ -124,6 +124,7 @@ html
             input(type="hidden" id="scriptID" name="scriptID" value=currentScript.id)
             input(type="hidden" id="selectedTVNums" name="selectedTVNums" value="")
             input(type="hidden" id="selectedChannelID" name="selectedChannelID" value="")
+            input(type="hidden" id="selectedChannelNumber" name="selectedChannelNumber" value="")
         div(class="container" style='margin-top:10px; margin-left: 0px;' id='btnDiv')    
             div(class="row")   
                 div(class="col-8") 
@@ -133,6 +134,14 @@ html
                             style='margin-right: 30px; margin-bottom: 30px;'
                             value=tv.tvNumber
                                 onClick='selectTV(this, ' + tv.tvNumber + ');') TV # #{tv.tvNumber}            
-                div(class="col-4" id="channelDiv" name="channelDiv")                             
+                div(class="col-4" id="channelDiv" name="channelDiv")    
+                    each channel in channelList  
+                        button(type='button' 
+                            id = "channelBtn" + currentScript.channelID
+                            name = "channelBtn" + currentScript.channelID
+                            class=(channel.channelId == currentScript.channelID ? 'btn btn-success btn-lg' : 'btn btn-primary btn-lg') 
+                            style='margin-left: 30px; margin-bottom: 30px;'                            
+                                onClick='selectChannel(this,"' + channel.channelId + '","' + channel.channelNumber + '");') #{channel.channelMode} #{channel.channelNumber}
+                         
                     
 

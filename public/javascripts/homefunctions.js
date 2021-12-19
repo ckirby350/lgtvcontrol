@@ -8,7 +8,7 @@ function showChannels(tvNum) {
     document.getElementById("topBtnDiv").style.visibility = "hidden";    
     document.getElementById("btnDiv").style.visibility = "hidden";
     document.getElementById("selectedTV").value = tvNum;
-    document.forms[0].submit();
+    document.getElementById("gotoChannelsForm").submit();
 }
 
 function runHealthCheck() {
@@ -21,6 +21,7 @@ function runHealthCheck() {
       .done(function(data) {
             var btnNameStr = "";
             var localTV;
+            /***
             for (var i = 0; i < localChunkedTVList.length; i++) { 
                 for (var cl = 0; cl < localChunkedTVList[i].tvChunk; cl++) {
                     localTV = localChunkedTVList[i].tvChunk[cl];
@@ -31,6 +32,16 @@ function runHealthCheck() {
                     document.getElementById(btnNameStr).className = "btn btn-primary btn-lg";
                 }
             }
+            ***/
+            //window.alert('back from healthCheck 1 data=' + JSON.stringify(data));
+            for (var cl = 0; cl < tvList.length; cl++) {
+                localTV = tvList[cl];
+                if (localTV.tvNumber == "EMPTY") {
+                    continue;
+                }
+                btnNameStr = "tv" + localTV.tvNumber + "Btn";
+                document.getElementById(btnNameStr).className = "btn btn-primary btn-lg";
+            }           
             if (data.badTVList && data.badTVList.length > 0 && data.badTVList[0] != "") {
                 var badListStr = "";                
                 for (var i = 0; i < data.badTVList.length; i++) { 
@@ -45,7 +56,6 @@ function runHealthCheck() {
             } else {
                 window.alert("No problems found.");
             }
-            //window.alert("ajax returned: " + data.badTVList[0]);
             document.getElementById("healthChkBtn").innerHTML = "Health Check";
             document.getElementById("healthChkBtn").disabled = false;
       });

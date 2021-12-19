@@ -6,13 +6,15 @@ jobList = [];
 
 fileName = "../data/scriptsched.json"
 
-vizioChannelList = [
-    { 'channelId' : '47-1', 'channelMode' : 'Cable', 'channelNumber' : '47-1'}
+staticChannelList = [
+    { 'channelId' : '3_2_2_1_0_0_0', 'channelMode' : 'Cable', 'channelNumber' : '2-1'}
+    , { 'channelId' : '3_3_3_1_0_0_0', 'channelMode' : 'Cable', 'channelNumber' : '3-1'}
+    , { 'channelId' : '3_47_47_1_0_0_0', 'channelMode' : 'Cable', 'channelNumber' : '47-1'}
     , { 'channelId' : '47-2', 'channelMode' : 'Cable', 'channelNumber' : '47-2'}
     , { 'channelId' : '47-3', 'channelMode' : 'Cable', 'channelNumber' : '47-3'}
     , { 'channelId' : '47-4', 'channelMode' : 'Cable', 'channelNumber' : '47-4'}
     , { 'channelId' : '47-5', 'channelMode' : 'Cable', 'channelNumber' : '47-5'}
-    , { 'channelId' : '58-1', 'channelMode' : 'Cable', 'channelNumber' : '58-1'}
+    , { 'channelId' : '3_58_58_1_0_0_0', 'channelMode' : 'Cable', 'channelNumber' : '58-1'}
     , { 'channelId' : '58-2', 'channelMode' : 'Cable', 'channelNumber' : '58-2'}
 ];
 
@@ -48,10 +50,10 @@ tvListObj = [
         'key' : "Zqcxkfnf6l"
     },
     {
-        'ipAddress': "192.168.254.23",
+        'ipAddress': "192.168.254.99",
         'tvNumber' : "6",
-        'mfg' : "LG",
-        'key' : ""
+        'mfg' : "VIZIO",
+        'key' : "xxxxxxxxx"
     },
     {
         'ipAddress': "192.168.254.23",
