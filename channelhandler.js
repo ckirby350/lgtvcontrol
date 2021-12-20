@@ -63,9 +63,9 @@ function goToSonyChannel(tvIPAddr, key, channelNum) {
     var code1 = 0;
     var code2 = 0;
     var bravia = require('./bravialib/sonytv');
-    console.log("goToSonyChannel 1");
+    //console.log("goToSonyChannel 1");
     bravia(tvIPAddr, key, function(client) {
-        console.log("goToSonyChannel 2 for " + "Num" + channelNum.substring(0,1));
+        //console.log("goToSonyChannel 2 for " + "Num" + channelNum.substring(0,1));
         client.getCommandCode(("Num" + channelNum.substring(0,1)), function(code) {
             //console.log("Code for " + "Num" + channelNum.substring(0,1) + "=" + code);
             //sleep(900);  

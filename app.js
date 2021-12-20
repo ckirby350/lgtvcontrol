@@ -168,7 +168,13 @@ function powerOff(tvIPAddress, mfg, key) {
             //console.log("promise err " + err); 
         });
 
-    }        
+    }     
+    if (mfg == "SONY") {
+        var bravia = require('./bravialib/sonytv');
+        bravia(tvIPAddress, key, function(client) {
+            client.exec('PowerOff');
+        });
+    }   
 }
 
 app.post("/gotoChannelsPage", (req,mainRes) => {
