@@ -42,7 +42,10 @@
     "node-ssdp": "^3.2.1",
     "request": "^2.81.0",
     "request-promise-native": "^1.0.3",
-    "sax": "^1.2.2"
+    "sax": "^1.2.2",
+    "node-uuid": "^1.4.2",
+    "tough-cookie-filestore": "0.0.1",
+    "wake_on_lan": "0.0.4"
     },
   "devDependencies": {
     "camo-purge": "latest",

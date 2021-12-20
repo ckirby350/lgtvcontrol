@@ -26,10 +26,10 @@ tvListObj = [
         'key' : ""
     },
     {
-        'ipAddress': "192.168.254.23",
+        'ipAddress': "192.168.254.21",
         'tvNumber' : "2",
-        'mfg' : "LG",
-        'key' : ""
+        'mfg' : "SONY",
+        'key' : "350"
     },
     {
         'ipAddress': "192.168.254.23",

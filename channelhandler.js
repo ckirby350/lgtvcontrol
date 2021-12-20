@@ -3,6 +3,7 @@ var changingChannel = false;
 var okToNavigate = true;
 var viziotv;
 
+
 function okToChangeChannel(tvIPAddr, mfg, key, newChannelID, newChannelNumber) {
     //console.log("okToChangeChannel tvIPAddr=" + tvIPAddr + " changingChannel=" + changingChannel);
     if (changingChannel) {
@@ -50,50 +51,40 @@ function changeTVChannel(tvIPAddr, mfg, key, newChannelID, newChannelNumber) {
     if (mfg == "VIZIO") {
         let smartcast = require('./vizio');
         viziotv = new smartcast(tvIPAddr, key);
-        goToVizioChannel(newChannelNumber);
-        /*** Original key navigation way
-        okToNavigate = true;
-        navigate(viziotv, "ok");
-        for (var i=0; i < newChannelID.length; i++) {
-            switch(newChannelID[i]) {
-                case "1":
-                    press1(viziotv);
-                    break;
-                case "2":
-                    press2(viziotv);
-                    break;
-                case "3":
-                    press3(viziotv);
-                    break;
-                case "4":
-                    press4(viziotv);
-                    break;
-                case "5":
-                    press5(viziotv);
-                    break;
-                case "6":
-                    press6(viziotv);
-                    break;
-                case "7":
-                    press7(viziotv);
-                    break;
-                case "8":
-                    press8(viziotv);
-                    break;
-                case "9":
-                    press9(viziotv);
-                    break;
-                case "0":
-                    press0(viziotv);
-                    break;
-                case "-":
-                    pressDash(viziotv);
-                    break;
-            }
-        }
-        pressEnter(viziotv);
-        ***/
+        goToVizioChannel(newChannelNumber);        
     } 
+    if (mfg == "SONY") {
+        goToSonyChannel(tvIPAddr, key, newChannelNumber);
+    }
+
+}
+
+function goToSonyChannel(tvIPAddr, key, channelNum) {
+    var code1 = 0;
+    var code2 = 0;
+    var bravia = require('./bravialib/sonytv');
+    console.log("goToSonyChannel 1");
+    bravia(tvIPAddr, key, function(client) {
+        console.log("goToSonyChannel 2 for " + "Num" + channelNum.substring(0,1));
+        client.getCommandCode(("Num" + channelNum.substring(0,1)), function(code) {
+            //console.log("Code for " + "Num" + channelNum.substring(0,1) + "=" + code);
+            //sleep(900);  
+            client.makeCommandRequest(code, function(resp) {
+                //console.log("back from first number call resp=" + resp);
+                if (channelNum.length > 1 && channelNum.substring(1,2) != "-") {
+                    //sleep(900);  
+                    client.getCommandCode(("Num" + channelNum.substring(1,2)), function(xcode) {
+                        //console.log("Code for " + "Num" + channelNum.substring(1,2) + "=" + xcode);
+                        //sleep(900);  
+                        client.makeCommandRequest(xcode);
+                        changingChannel = false;
+                    });
+                } else {
+                    changingChannel = false;
+                }
+            });
+        });
+    });
 }
 
 function sleep(milliseconds) {
@@ -154,6 +145,7 @@ function goToVizioChannel(channelNum) {
     });
 }
 
+
 /*** tried with ch up until I got there - FAIL
 function goToVizioChannel(channelNum) {
     //console.log("sending ch up...");    
@@ -180,6 +172,50 @@ function goToVizioChannel(channelNum) {
     });
 }
 ***/
+
+/*** Original key navigation way
+        okToNavigate = true;
+        navigate(viziotv, "ok");
+        for (var i=0; i < newChannelID.length; i++) {
+            switch(newChannelID[i]) {
+                case "1":
+                    press1(viziotv);
+                    break;
+                case "2":
+                    press2(viziotv);
+                    break;
+                case "3":
+                    press3(viziotv);
+                    break;
+                case "4":
+                    press4(viziotv);
+                    break;
+                case "5":
+                    press5(viziotv);
+                    break;
+                case "6":
+                    press6(viziotv);
+                    break;
+                case "7":
+                    press7(viziotv);
+                    break;
+                case "8":
+                    press8(viziotv);
+                    break;
+                case "9":
+                    press9(viziotv);
+                    break;
+                case "0":
+                    press0(viziotv);
+                    break;
+                case "-":
+                    pressDash(viziotv);
+                    break;
+            }
+        }
+        pressEnter(viziotv);
+****************/
+    
 
 function navigate(viztv, direction) {
     if (!okToNavigate) {
