@@ -57,9 +57,24 @@ function connCheck(tvMfg, tvIPAddr, tvNum, tvKey) {
     if (tvMfg == "VIZIO") {
         let smartcast = require('../vizio');
         viziotv = new smartcast(tvIPAddr, tvKey);
-        var channelPromise = viziotv.settings.channels.get();
+        channelPromise = viziotv.settings.channels.get();
         channelPromise.then((data) => {
-            tvChecked(tvNum);      
+            tvChecked(tvNum);   
+            /***   
+            viziotv.input.current().then(inputResponse => {
+                console.log(' input response from ' + tvIPAddr + ': ', inputResponse);
+                if (inputResponse != null && inputResponse != "undefined" && inputResponse != ""
+                    && inputResponse.ITEMS != null && inputResponse.ITEMS != "undefined" && inputResponse.ITEMS != ""
+                    && inputResponse.ITEMS.length > 0) {
+                        if (inputResponse.ITEMS[0].VALUE != "tuner") {
+                            console.log("VIZIO not on TV input!!!");
+                            viziotv.input.set("TV");
+                        } else {
+                            console.log("VIZIO IS on TV input!!!");
+                        }
+                }
+            });      
+            ***/        
         }).catch(err => { 
             badTVList[badTVList.length] = tvNum;
             tvChecked(tvNum);

@@ -6,7 +6,7 @@ var viziotv;
 
 
 function okToChangeChannel(tvIPAddr, mfg, key, newChannelID, newChannelNumber) {
-    //console.log("okToChangeChannel tvIPAddr=" + tvIPAddr + " changingChannel=" + changingChannel);
+    //console.log("okToChangeChannel tvIPAddr=" + tvIPAddr + " newChannelNumber=" + newChannelNumber + " changingChannel=" + changingChannel);
     if (changingChannel) {
         setTimeout(okToChangeChannel, 1000, tvIPAddr, mfg, key, newChannelID, newChannelNumber);
         return;
@@ -19,7 +19,7 @@ function changeChannels(tvNumsToChange, newChannelID, newChannelNumber) {
     for (var i = 0; i < tvListObj.length; i++) { 
         tv = tvListObj[i];
         if (tvNumsToChange.includes(tv.tvNumber)) {
-            console.log("ok to change " + tv.ipAddress + " mfg=" + tv.mfg);
+            //console.log("ok to change " + tv.ipAddress + " mfg=" + tv.mfg);
             okToChangeChannel(tv.ipAddress, tv.mfg, tv.key, newChannelID, newChannelNumber);         
         }
     }  
@@ -150,19 +150,25 @@ function goToVizioChannel(channelNum) {
             strf.sleep(900);  
             viziotv.control.keyCommand(0, code2, 'KEYPRESS').then((value) => { 
                 if (code3 > 0) {
-                    strf.sleep(900); 
-                    changingChannel = false;
+                    strf.sleep(900);                    
                     viziotv.control.keyCommand(0, code3, 'KEYPRESS').then((value) => { 
                         if (code4 > 0) {
                             strf.sleep(900); 
                             viziotv.control.keyCommand(0, code4, 'KEYPRESS');
+                            strf.sleep(4000);                            
+                            changingChannel = false;
+                        } else {
+                            strf.sleep(4000);
+                            changingChannel = false;
                         }
                     });
                 } else {
+                    strf.sleep(4000);
                     changingChannel = false;
                 }
             });
         } else {
+            strf.sleep(4000);
             changingChannel = false;
         }    
     });
