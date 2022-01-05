@@ -3,6 +3,8 @@ const express = require('express');
 const schedule = require('node-schedule');
 const fh = require("./filehandler");
 const ch = require("./channelhandler");
+const gh = require("./guidehandler");
+const strf = require("./strfuncts.js");
 const app = express();
 var path = require('path');
 var indexRouter = require('./routes/index');
@@ -45,6 +47,39 @@ if (chunkCnt > -1) {
     chunkedTVList[mainCnt] = chunk;
 }
 
+if (showGuide) {
+    var nowStr = "";
+    var nowDT = new Date();
+    nowStr = nowDT.getFullYear() + "-" + (nowDT.getMonth() + 1) + "-" + nowDT.getDate();
+    gh.getGuide(nowStr);
+    //gh.getGuide("2021-12-21");
+}
+
+/********************************************************************************************
+ *  use this to get a list of network callsigns for populating staticChannels in vars network property
+ ***************************************
+fh.readGuide("2021-12-21", listNetworks);
+function listNetworks(foundIt, xdata) { 
+    var networkList = [];   
+    xguideObjs = JSON.parse(xdata);
+    if (xguideObjs && xguideObjs.length > 0) {
+        for (var gcnt=0; gcnt < xguideObjs.length; gcnt++) {
+            networkStr = xguideObjs[gcnt].channel.callsign + "-" + xguideObjs[gcnt].channel.network;  
+            if (networkStr && networkStr != "") {
+                if (networkList.indexOf(networkStr) < 0) {
+                    networkList.push(networkStr);
+                }
+            }          
+        } 
+        networkList.sort();
+        for (var i=0; i < networkList.length; i++) {
+            console.log(networkList[i]);
+        }
+    }
+}
+************************************************************************************************/
+
+
 function mainRunAndDeleteScript(scriptID, runIt) {
     //console.log("mainrunanddel id=" + scriptID + " runit=" + runIt);
     var scriptObj = scriptObjs.find(obj => {
@@ -79,6 +114,16 @@ app.get("/returnToMain", (req,res) => {
         lgtv.disconnect();
     }
     selectedTVList = [];
+    if (currGuideObjs && currGuideObjs != "undefined" && currGuideObjs.length > 0) {
+        var channel;
+        gnowDateStr = strf.getDateToMinStr(new Date()) + ":00";        
+        for (var cnt=0; cnt < staticChannelList.length; cnt++) {
+            channel = { 'channelId' : staticChannelList[cnt].channelId, 'channelMode' : staticChannelList[cnt].channelMode,
+                'channelNumber' : staticChannelList[cnt].channelNumber, 'network' : staticChannelList[cnt].network,
+                'currProgram' : strf.getShowName(gnowDateStr, staticChannelList[cnt].network)}
+            staticChannelList[cnt] = channel;
+        }
+    }
     res.render('index', { selectedTV : '', tvList : tvListObj, selectedTVList : selectedTVList, 
         channelList : staticChannelList, currentChannelID : '', currentChannelNumber : '' });
     //res.render('index', { tvList : chunkedTVList });
@@ -95,8 +140,23 @@ app.post("/changeChannel", (req,res) => {
     } else {
         console.log("no TV picked to change channel for");
     }
-    res.render('channels', { selectedTV : currentSelectedTV, tvList : tvListObj, selectedTVList : selectedTVList, channelList : currentChannelList, currentChannelID : req.body.channelID, currentChannelNumber : req.body.channelNumber });
+    //res.render('channels', { selectedTV : currentSelectedTV, tvList : tvListObj, selectedTVList : selectedTVList, channelList : currentChannelList, currentChannelID : req.body.channelID, currentChannelNumber : req.body.channelNumber });
+    res.render('index', { selectedTV : '', tvList : tvListObj, selectedTVList : selectedTVList, 
+        channelList : staticChannelList, currentChannelID : req.body.channelID, currentChannelNumber : req.body.channelNumber });
 })
+
+app.get("/updateTVKey", (req,res) => {
+    tvNumToUpdate = req.query.tvNumber;
+    keyToUpdate = req.query.key;
+    tvSpot = tvListObj.findIndex(x => x.tvNumber === tvNumToUpdate);
+    if (tvSpot < 0) {
+        res.json({"error" : "TV " + tvNumToUpdate + " not found!!"});
+    }
+    tvObj = tvListObj[tvSpot];
+    tvObj.key = keyToUpdate;
+    tvListObj[tvSpot] = tvObj;
+    res.json({tv: tvObj });    
+});
 
 app.get("/changeChannels", (req,res) => {
     //console.log(req.query.tvNums);
@@ -108,6 +168,16 @@ app.get("/changeChannels", (req,res) => {
         ch.changeChannels(selectedTVList, newChannelID, newChannelNumber);
     } else {
         console.log("Null/Blank tvNums and/or channelID parameters!!!");
+    }
+    if (currGuideObjs && currGuideObjs != "undefined" && currGuideObjs.length > 0) {
+        var channel;
+        gnowDateStr = strf.getDateToMinStr(new Date()) + ":00";        
+        for (var cnt=0; cnt < staticChannelList.length; cnt++) {
+            channel = { 'channelId' : staticChannelList[cnt].channelId, 'channelMode' : staticChannelList[cnt].channelMode,
+                'channelNumber' : staticChannelList[cnt].channelNumber, 'network' : staticChannelList[cnt].network,
+                'currProgram' : strf.getShowName(gnowDateStr, staticChannelList[cnt].network)}
+            staticChannelList[cnt] = channel;
+        }
     }
     res.render('index', { selectedTV : '', tvList : tvListObj, selectedTVList : selectedTVList, 
         channelList : staticChannelList, currentChannelID : newChannelID, currentChannelNumber : newChannelNumber });
@@ -136,6 +206,16 @@ app.get("/shutdown", (req,res) => {
         tv = tvListObj[i];
         console.log("Shutting down TV " + tv.tvNumber);
         powerOff(tv.ipAddress, tv.mfg, tv.key);     
+    }
+    if (currGuideObjs && currGuideObjs != "undefined" && currGuideObjs.length > 0) {
+        var channel;
+        gnowDateStr = strf.getDateToMinStr(new Date()) + ":00";        
+        for (var cnt=0; cnt < staticChannelList.length; cnt++) {
+            channel = { 'channelId' : staticChannelList[cnt].channelId, 'channelMode' : staticChannelList[cnt].channelMode,
+                'channelNumber' : staticChannelList[cnt].channelNumber, 'network' : staticChannelList[cnt].network,
+                'currProgram' : strf.getShowName(gnowDateStr, staticChannelList[cnt].network)}
+            staticChannelList[cnt] = channel;
+        }
     }
     res.render('index', { tvList : chunkedTVList });
 });
@@ -170,11 +250,29 @@ function powerOff(tvIPAddress, mfg, key) {
 
     }     
     if (mfg == "SONY") {
-        var bravia = require('./bravialib/sonytv');
+        bravia = require('./bravialib/sonytv');
         bravia(tvIPAddress, key, function(client) {
             client.exec('PowerOff');
         });
     }   
+    if (mfg == "SAMSUNG") {
+        SamsungTv = require('./samsunglib/SamsungTv');
+        deviceConfig = {
+            ip: tvIPAddress,
+            appId: samsungAppId,
+            userId: samsungUserId,
+          }
+        //console.log(deviceConfig);
+        samtv = new SamsungTv(deviceConfig);
+        samtv.init()
+            .then(() => samtv.confirmPin(key))
+            .then(() => samtv.connect())
+            .then(() => {
+                //KEY_POWER for newer models
+                samtv.sendKey('KEY_POWEROFF');                
+            })
+            .then(() => samtv.connection.socket.close());
+    }
 }
 
 app.post("/gotoChannelsPage", (req,mainRes) => {
@@ -196,6 +294,16 @@ app.post("/gotoChannelsPage", (req,mainRes) => {
         }
     }
     if (req.body.selectedTV == "0") {
+        if (currGuideObjs && currGuideObjs != "undefined" && currGuideObjs.length > 0) {
+            var channel;
+            gnowDateStr = strf.getDateToMinStr(new Date()) + ":00";        
+            for (var cnt=0; cnt < staticChannelList.length; cnt++) {
+                channel = { 'channelId' : staticChannelList[cnt].channelId, 'channelMode' : staticChannelList[cnt].channelMode,
+                    'channelNumber' : staticChannelList[cnt].channelNumber, 'network' : staticChannelList[cnt].network,
+                    'currProgram' : strf.getShowName(gnowDateStr, staticChannelList[cnt].network)}
+                staticChannelList[cnt] = channel;
+            }
+        }
         mainRes.render('index', { selectedTV : '', tvList : tvListObj, selectedTVList : selectedTVList, 
         channelList : staticChannelList, currentChannelID : '', currentChannelNumber : '' });
         //mainRes.render('index', { tvList : chunkedTVList });
@@ -213,7 +321,8 @@ app.post("/gotoChannelsPage", (req,mainRes) => {
         lgtv.on('error', function (err) {
             console.log(err);
             lgtv.disconnect();
-            mainRes.render('index', { tvList : chunkedTVList });
+            mainRes.render('index', { selectedTV : '', tvList : tvListObj, selectedTVList : selectedTVList, 
+            channelList : staticChannelList, currentChannelID : '', currentChannelNumber : '' });
         });
         
         lgtv.on('connecting', function () {

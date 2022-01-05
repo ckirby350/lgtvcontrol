@@ -141,7 +141,7 @@ html
                             name = "channelBtn" + currentScript.channelID
                             class=(channel.channelId == currentScript.channelID ? 'btn btn-success btn-lg' : 'btn btn-primary btn-lg') 
                             style='margin-left: 30px; margin-bottom: 30px;'                            
-                                onClick='selectChannel(this,"' + channel.channelId + '","' + channel.channelNumber + '");') #{channel.channelMode} #{channel.channelNumber}
+                                onClick='selectChannel(this,"' + channel.channelId + '","' + channel.channelNumber + '");') #{channel.network && channel.network != "" ? channel.network : channel.channelMode} #{channel.channelNumber}
                          
                     
 

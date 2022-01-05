@@ -3,18 +3,27 @@ fileWritten = true;
 scriptObjs = [];
 chunkedTVList = [];
 jobList = [];
-
 fileName = "../data/scriptsched.json"
 
+showGuide = false;
+currGuideObjs = [];
+tvMediaAPIKey = "d96023d3ce3c169c561b049e91598558";
+tvMediaLinupNum = "139095";
+tvMediaTimezone = "America/Chicago";
+tvMediaDateFetchedAttempts = [];
+
+samsungAppId = '721b6fce-4ee6-48ba-8045-955a539edadb';
+samsungUserId = '654321';
+
 staticChannelList = [
-    { 'channelId' : '3_2_2_1_0_0_0', 'channelMode' : 'Cable', 'channelNumber' : '2-1'}
-    , { 'channelId' : '3_3_3_1_0_0_0', 'channelMode' : 'Cable', 'channelNumber' : '3-1'}
-    , { 'channelId' : '3_47_47_1_0_0_0', 'channelMode' : 'Cable', 'channelNumber' : '47-1'}
-    , { 'channelId' : '47-2', 'channelMode' : 'Cable', 'channelNumber' : '47-2'}
-    , { 'channelId' : '47-3', 'channelMode' : 'Cable', 'channelNumber' : '47-3'}
-    , { 'channelId' : '47-4', 'channelMode' : 'Cable', 'channelNumber' : '47-4'}
-    , { 'channelId' : '47-5', 'channelMode' : 'Cable', 'channelNumber' : '47-5'}
-    , { 'channelId' : '3_58_58_1_0_0_0', 'channelMode' : 'Cable', 'channelNumber' : '58-1'}
+    { 'channelId' : '3_2_2_1_0_0_0', 'channelMode' : 'Cable', 'channelNumber' : '2-1', 'network' : 'WFAA'}
+    , { 'channelId' : '3_3_3_1_0_0_0', 'channelMode' : 'Cable', 'channelNumber' : '3-1', 'network' : 'KXAS-TV'}
+    , { 'channelId' : '3_47_47_1_0_0_0', 'channelMode' : 'Cable', 'channelNumber' : '47-1', 'network' : 'ESPN'}
+    , { 'channelId' : '47-2', 'channelMode' : 'Cable', 'channelNumber' : '47-2', 'network' : 'FS1'}
+    , { 'channelId' : '47-3', 'channelMode' : 'Cable', 'channelNumber' : '47-3', 'network' : 'GOLF'}
+    , { 'channelId' : '47-4', 'channelMode' : 'Cable', 'channelNumber' : '47-4', 'network' : 'ESPN2'}
+    , { 'channelId' : '47-5', 'channelMode' : 'Cable', 'channelNumber' : '47-5', 'network' : 'CHIVE'}
+    , { 'channelId' : '3_58_58_1_0_0_0', 'channelMode' : 'Cable', 'channelNumber' : '58-1', 'network' : 'TNT'}
     , { 'channelId' : '58-2', 'channelMode' : 'Cable', 'channelNumber' : '58-2'}
 ];
 
@@ -32,10 +41,10 @@ tvListObj = [
         'key' : "350"
     },
     {
-        'ipAddress': "192.168.254.23",
+        'ipAddress': "192.168.254.78",
         'tvNumber' : "3",
-        'mfg' : "LG",
-        'key' : ""
+        'mfg' : "SAMSUNG",
+        'key' : "7493"
     },
     {
         'ipAddress': "192.168.254.23",
@@ -176,3 +185,4 @@ tvListObj = [
         'key' : ""
     }
 ];
+

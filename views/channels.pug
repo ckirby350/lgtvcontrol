@@ -39,7 +39,7 @@ html
                         button(type='button' 
                             class=(channel.channelId == currentChannelID ? 'btn btn-success btn-lg' : 'btn btn-primary btn-lg') 
                             style='margin-left: 30px; margin-bottom: 30px;'                            
-                                onClick='selectChannel("' + channel.channelId + '","' + channel.channelNumber + '");') #{channel.channelMode} #{channel.channelNumber}
+                                onClick='selectChannel("' + channel.channelId + '","' + channel.channelNumber + '");') #{channel.network && channel.network != "" ? channel.network : channel.channelMode} #{channel.channelNumber}
                 div(class="col-8")                             
                     each tv in tvList   
                         button(type='button' 

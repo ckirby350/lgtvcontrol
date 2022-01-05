@@ -203,7 +203,8 @@ router.get("/getChannels/:tvNum", (req,mainRes) => {
             channelsReturned = true;
             console.log(err);
             xlgtv.disconnect();
-            mainRes.render('index', { tvList : chunkedTVList });
+            mainRes.render('index', { selectedTV : '', tvList : tvListObj, selectedTVList : selectedTVList, 
+            channelList : staticChannelList, currentChannelID : '', currentChannelNumber : ''});
         });    
         
         xlgtv.on('connect', function () {

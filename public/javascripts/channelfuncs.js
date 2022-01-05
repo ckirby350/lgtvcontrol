@@ -16,7 +16,7 @@ function selectTV(btn, tvnum) {
 
 function selectChannel(channelID, channelNum) {  
     if (!selectedTVNums || selectedTVNums.length < 1 || selectedTVNums[0] == "") {
-        window.alert("No TV selected to show this channel. Select at least 1 TV from the right button list.");
+        window.alert("No TV selected to show this channel. Select at least 1 TV from the TV button list.");
         return;
     }  
     document.getElementById("btnDiv").style.visibility = "hidden";

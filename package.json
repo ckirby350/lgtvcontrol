@@ -31,6 +31,7 @@
     "express": "^4.17.1",
     "mkdirp": "^1.0.4",
     "node-schedule": "^2.1.0",
+    "node-fetch": "^2.0.0",
     "nodejs": "^0.0.0",
     "nodemon": "^2.0.15",
     "persist-path": "^1.0.2",
@@ -45,7 +46,10 @@
     "sax": "^1.2.2",
     "node-uuid": "^1.4.2",
     "tough-cookie-filestore": "0.0.1",
-    "wake_on_lan": "0.0.4"
+    "wake_on_lan": "0.0.4",
+    "ws": "^4.0.0",
+    "hapi": "^17.2.0",
+    "inert": "^5.1.0"
     },
   "devDependencies": {
     "camo-purge": "latest",

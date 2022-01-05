@@ -1,4 +1,5 @@
 require('./vars.js');
+const strf = require("./strfuncts.js");
 var changingChannel = false;
 var okToNavigate = true;
 var viziotv;
@@ -18,7 +19,7 @@ function changeChannels(tvNumsToChange, newChannelID, newChannelNumber) {
     for (var i = 0; i < tvListObj.length; i++) { 
         tv = tvListObj[i];
         if (tvNumsToChange.includes(tv.tvNumber)) {
-            //console.log("ok to change " + tv.ipAddress + " mfg=" + tv.mfg);
+            console.log("ok to change " + tv.ipAddress + " mfg=" + tv.mfg);
             okToChangeChannel(tv.ipAddress, tv.mfg, tv.key, newChannelID, newChannelNumber);         
         }
     }  
@@ -56,7 +57,36 @@ function changeTVChannel(tvIPAddr, mfg, key, newChannelID, newChannelNumber) {
     if (mfg == "SONY") {
         goToSonyChannel(tvIPAddr, key, newChannelNumber);
     }
+    if (mfg == "SAMSUNG") {
+        goToSamsungChannel(tvIPAddr, key, newChannelNumber);
+    }
+}
 
+function goToSamsungChannel(tvIPAddr, key, channelNum) {
+    SamsungTv = require('./samsunglib/SamsungTv');
+    deviceConfig = {
+        ip: tvIPAddr,
+        appId: samsungAppId,
+        userId: samsungUserId,
+      }
+    //console.log(deviceConfig);
+    samtv = new SamsungTv(deviceConfig);
+    samtv.init()
+        .then(() => samtv.confirmPin(key))
+        .then(() => samtv.connect())
+        .then(() => {
+            samtv.sendKey('KEY_' + channelNum.substring(0,1));
+            if (channelNum.length > 1) {
+                strf.sleep(900);
+                samtv.sendKey('KEY_' + channelNum.substring(1,2));
+            }
+        })
+        .then(() => {
+            samtv.connection.socket.close();
+            changingChannel = false;
+        }).catch(err => { 
+            changingChannel = false;
+        });
 }
 
 function goToSonyChannel(tvIPAddr, key, channelNum) {
@@ -87,13 +117,6 @@ function goToSonyChannel(tvIPAddr, key, channelNum) {
     });
 }
 
-function sleep(milliseconds) {
-    const date = Date.now();
-    let currentDate = null;
-    do {
-      currentDate = Date.now();
-    } while (currentDate - date < milliseconds);
-  }
 
 function goToVizioChannel(channelNum) {
     var code1 = 0;
@@ -124,14 +147,14 @@ function goToVizioChannel(channelNum) {
     }
     viziotv.control.keyCommand(0, code1, 'KEYPRESS').then((value) => {
         if (code2 > 0) {
-            sleep(900);  
+            strf.sleep(900);  
             viziotv.control.keyCommand(0, code2, 'KEYPRESS').then((value) => { 
                 if (code3 > 0) {
-                    sleep(900); 
+                    strf.sleep(900); 
                     changingChannel = false;
                     viziotv.control.keyCommand(0, code3, 'KEYPRESS').then((value) => { 
                         if (code4 > 0) {
-                            sleep(900); 
+                            strf.sleep(900); 
                             viziotv.control.keyCommand(0, code4, 'KEYPRESS');
                         }
                     });
