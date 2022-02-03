@@ -15,6 +15,10 @@ tvMediaDateFetchedAttempts = [];
 samsungAppId = '721b6fce-4ee6-48ba-8045-955a539edadb';
 samsungUserId = '654321';
 
+vizioKeyPressDelayInMillis = 900;
+vizioDelayBetweenTVsInMillis = 4000;
+lgDelayBetweenTVsInMillis = 2000;
+
 staticChannelList = [
     { 'channelId' : '3_2_2_1_0_0_0', 'channelMode' : 'Cable', 'channelNumber' : '2-1', 'network' : 'WFAA'}
     , { 'channelId' : '3_3_3_1_0_0_0', 'channelMode' : 'Cable', 'channelNumber' : '3-1', 'network' : 'KXAS-TV'}

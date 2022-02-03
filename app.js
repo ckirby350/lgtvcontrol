@@ -179,9 +179,9 @@ app.get("/changeChannels", (req,res) => {
             staticChannelList[cnt] = channel;
         }
     }
-    res.render('index', { selectedTV : '', tvList : tvListObj, selectedTVList : selectedTVList, 
-        channelList : staticChannelList, currentChannelID : newChannelID, currentChannelNumber : newChannelNumber });
-    //res.render('index', { tvList : chunkedTVList });
+    //res.render('index', { selectedTV : '', tvList : tvListObj, selectedTVList : selectedTVList, 
+    //    channelList : staticChannelList, currentChannelID : newChannelID, currentChannelNumber : newChannelNumber });
+    res.render('scripts');
 });
 
 app.get("/close", (req,res) => {

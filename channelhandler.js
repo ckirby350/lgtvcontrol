@@ -45,6 +45,7 @@ function changeTVChannel(tvIPAddr, mfg, key, newChannelID, newChannelNumber) {
         xlgtv.on('connect', function () {
             xlgtv.request('ssap://tv/openChannel', {channelId: newChannelID}, function (err) {
                 xlgtv.disconnect();
+                strf.sleep(lgDelayBetweenTVsInMillis);  
                 changingChannel = false;
             });
         });     
@@ -145,30 +146,35 @@ function goToVizioChannel(channelNum) {
             code4 = 48 + Number(channelNum.substring(3,4));
         }
     }
+    //console.log("viz code1=" + code1 + " code2=" + code2 + " code3=" + code3 + " code4=" + code4 + " now=" + Date.now());
     viziotv.control.keyCommand(0, code1, 'KEYPRESS').then((value) => {
         if (code2 > 0) {
-            strf.sleep(900);  
+            strf.sleep(vizioKeyPressDelayInMillis);  
+            //console.log("  sending code2..." + Date.now());
             viziotv.control.keyCommand(0, code2, 'KEYPRESS').then((value) => { 
                 if (code3 > 0) {
-                    strf.sleep(900);                    
+                    strf.sleep(vizioKeyPressDelayInMillis);  
+                    //console.log("  sending code3..." + Date.now());                  
                     viziotv.control.keyCommand(0, code3, 'KEYPRESS').then((value) => { 
                         if (code4 > 0) {
-                            strf.sleep(900); 
-                            viziotv.control.keyCommand(0, code4, 'KEYPRESS');
-                            strf.sleep(4000);                            
-                            changingChannel = false;
+                            strf.sleep(vizioKeyPressDelayInMillis); 
+                            //console.log("  sending code4..." + Date.now());
+                            viziotv.control.keyCommand(0, code4, 'KEYPRESS').then((value) => { 
+                                strf.sleep(vizioDelayBetweenTVsInMillis);                            
+                                changingChannel = false;
+                            }); 
                         } else {
-                            strf.sleep(4000);
+                            strf.sleep(vizioDelayBetweenTVsInMillis);
                             changingChannel = false;
                         }
-                    });
+                    });                    
                 } else {
-                    strf.sleep(4000);
+                    strf.sleep(vizioDelayBetweenTVsInMillis);
                     changingChannel = false;
                 }
             });
         } else {
-            strf.sleep(4000);
+            strf.sleep(vizioDelayBetweenTVsInMillis);
             changingChannel = false;
         }    
     });
