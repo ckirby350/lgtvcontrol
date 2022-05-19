@@ -41,7 +41,7 @@ function readSched() {
     if (!fileWritten) {
         setTimeout(readSched, 1000);
         return;
-    }
+    }   
     fs.readFile(fileName, function(err, data) {
         if (err) {
             fileRead = true;
@@ -50,6 +50,12 @@ function readSched() {
         }
         if (data && data != "undefine" && data != "" && data.length > 0) {
             scriptObjs = JSON.parse(data);
+            for (var i=0; i < scriptObjs.length; i++) {
+                mtvs = scriptObjs[i].tvList.split("|");
+                mChannels = scriptObjs[i].channelNumber.split("|");
+                scriptObjs[i].mtvList = mtvs;
+                scriptObjs[i].mchList = mChannels;
+            }
         }
         fileRead = true;
         console.log("sched data: " + data); 

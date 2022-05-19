@@ -28,32 +28,42 @@ html
                 thead(class="thead-light")
                     tr
                         th(scope="col") Name
-                        th(scope="col") TV #s
                         th(scope="col") Channel
+                        th(scope="col") TV #s                        
                         th(scope="col") Runtime 
                         th
                     tbody
                       each script in scriptObjs
                         tr(id=script.id)   
-                            th(scope="row")= script.name
-                            td= script.tvList
-                            td= script.channelNumber
+                            th(scope="row")
+                                a(href="javascript:deleteScript(this,'" + script.id + "');" class="text-danger fw-bold text-decoration-none") X
+                                |    
+                                a(href=(script.runDT && script.runDT != "" ? "#" : "/scripts/editScript?scriptID=" + script.id)) #{script.name}                                                                
+                            td
+                                table(class="table table-borderless")
+                                    tbody
+                                        each mch in script.mchList
+                                            tr
+                                                td(style="padding: 0px;")= mch
+                            td
+                                table(class="table table-borderless")
+                                    tbody
+                                        each mtv in script.mtvList
+                                            tr
+                                                td(style="padding: 0px;")= mtv
                             td= script.runDT
                             td
-                                a(href=(script.runDT && script.runDT != "" ? "" : "/scripts/scheduleScript?scriptID=" + script.id))
+                                a(href=(script.runDT && script.runDT != "" ? "#" : "/scripts/scheduleScript?scriptID=" + script.id))
                                     button(type='button' 
                                         class=(script.runDT && script.runDT != "" ? 'btn btn-secondary btn-lg' : 'btn btn-primary btn-lg') 
                                         style='margin-left: 30px;' 
                                         disabled=(script.runDT && script.runDT != "" ? true : false)                         
                                         onClick='') Schedule 
-                                a(href="/changeChannels?channelID=" + script.channelID + "&channelNumber=" + script.channelNumber + "&tvNums=" + script.tvList)
+                                a(href="/scripts/runScript?scriptID=" + script.id)
                                     button(type='button' 
                                         class='btn btn-primary btn-lg' 
                                         style='margin-left: 30px;'                            
                                         onClick="this.style.visibility = 'hidden');") Run Now 
-                                button(type='button' 
-                                    class='btn btn-primary btn-lg' 
-                                    style='margin-left: 30px;'                            
-                                    onClick="deleteScript(this,'" + script.id + "');") Delete                     
+                                         
                         
             

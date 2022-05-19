@@ -82,12 +82,19 @@ function listNetworks(foundIt, xdata) {
 
 function mainRunAndDeleteScript(scriptID, runIt) {
     //console.log("mainrunanddel id=" + scriptID + " runit=" + runIt);
-    var scriptObj = scriptObjs.find(obj => {
+    tvArr = [];
+    scriptObj = scriptObjs.find(obj => {
         return obj.id === scriptID
     })
     //console.log("   scriptObj tvList=" + scriptObj.tvList + " channelID=" + scriptObj.channelID);
     if (runIt) {
-        ch.changeChannels(scriptObj.tvList, scriptObj.channelID);
+        mtvs = scriptObj.tvList.split("|");
+        mChannels = scriptObj.channelID.split("|");
+        mChnum = scriptObj.channelNumber.split("|");
+        for (var mccnt=0; mccnt < mChannels.length; mccnt++) {
+            tvArr = mtvs[mccnt].split(",");
+            ch.changeChannels(tvArr, mChannels[mccnt], mChnum[mccnt]);
+        }
     }
     scriptObjs = scriptObjs.filter(function( obj ) {
         return obj.id !== scriptID;
@@ -416,9 +423,16 @@ function initSched() {
     var scriptObj;
     var job;
     var jobSpot = -1;
+    mtvList = [];
+    mchList = [];    
     if (scriptObjs && scriptObjs.length > 0) {
         for (var schedCnt=0; schedCnt < scriptObjs.length; schedCnt++) {
             scriptObj = scriptObjs[schedCnt];
+            mchList = scriptObj.channelNumber.split("|");
+            mtvList = scriptObj.tvList.split("|");
+            scriptObj.mtvList = mtvList;
+            scriptObj.mchList = mchList;
+            //console.log("mch len=" + scriptObj.mchList.length);
             if (scriptObj.runDT && scriptObj.runDT != "") {
                 now = new Date();
                 schedDat = new Date(Number(scriptObj.runDT.substring(0,4)), 

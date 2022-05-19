@@ -11,12 +11,14 @@ var currentScript;
 var scriptSelectedTVNums = [];
 var channelsReturned = false;
 var scriptAvailChannelList = [];
+var channelAndTVs = [];
 
 router.post("/save", (req,res) => { 
     var scriptObj;   
     var fndIt = false;
     var tvIPListStr = "";
     var selectedTV;
+    runDTStr = "";
     /***/
     console.log("script save name=" + req.body.nameFld);
     console.log("              id=" + req.body.scriptID);
@@ -24,20 +26,40 @@ router.post("/save", (req,res) => {
     console.log("        channel=" + req.body.selectedChannelID + " " + req.body.selectedChannelNumber);
     console.log("            date=" + req.body.runDTdateFld + " hr=" + req.body.runDThrFld + " min=" + req.body.runDTmnFld + " ampm=" + req.body.runDTampmFld);
     
-    var tvArray = req.body.selectedTVNums.split(",");
-    runDTStr = "";
-    for (var i=0; i < tvArray.length; i++) {
-        if (i > 0) {
-            tvIPListStr = tvIPListStr + ",";
+    channelIDSaveVal = "";
+    tvArray = [];
+    mtvs = req.body.selectedTVNums.split("|");
+    mChannels = req.body.selectedChannelNumber.split("|");
+    for (var mccnt=0; mccnt < mChannels.length; mccnt++) {
+        if (channelIDSaveVal && channelIDSaveVal.length > 0) {
+            channelIDSaveVal = channelIDSaveVal + "|";
         }
-        for (var tcnt=0; tcnt < tvListObj.length; tcnt++) {
-            tv = tvListObj[tcnt];
-            if (tv.tvNumber == tvArray[i]) {
+        for (var i=0; i < staticChannelList.length; i++) {
+            if (staticChannelList[i].channelNumber == mChannels[mccnt]) {
+                channelIDSaveVal = channelIDSaveVal + staticChannelList[i].channelId;
                 break;
             }
         }
-        tvIPListStr = tvIPListStr + tv.ipAddress;
+
+        tvArray = mtvs[mccnt].split(",");
+        if (tvIPListStr && tvIPListStr.length > 0) {
+            tvIPListStr = tvIPListStr + "|";
+        }
+        for (var i=0; i < tvArray.length; i++) {
+            if (i > 0) {
+                tvIPListStr = tvIPListStr + ",";
+            }
+            for (var tcnt=0; tcnt < tvListObj.length; tcnt++) {
+                tv = tvListObj[tcnt];
+                if (tv.tvNumber == tvArray[i]) {
+                    break;
+                }
+            }
+            tvIPListStr = tvIPListStr + tv.ipAddress;
+        }
     }
+
+   
     if (req.body.runDTdateFld && req.body.runDTdateFld != "undefined" && req.body.runDTdateFld != "") {
         runDTDate = new Date(req.body.runDTdateFld);
         hr = Number(req.body.runDThrFld);
@@ -75,11 +97,15 @@ router.post("/save", (req,res) => {
         jobList.push(jobObj);   
     }
     scriptObj = { 'id' : req.body.scriptID, 'name' : req.body.nameFld, 'tvIPs' : tvIPListStr,
-            'channelID' : req.body.selectedChannelID, 'channelNumber' : req.body.selectedChannelNumber,
-            'tvList' : req.body.selectedTVNums, 'runDT' : runDTStr};
+            'channelID' : channelIDSaveVal, 'channelNumber' : req.body.selectedChannelNumber,
+            'tvList' : req.body.selectedTVNums, 'runDT' : runDTStr,
+            'mtvList' : mtvs, 'mchList' : mChannels};
+    console.log("scriptObjs.length=" + scriptObjs.length + " scriptObj.id=" + scriptObj.id);
     for (var i=0; i < scriptObjs.length; i++) {
-        if (scriptObjs[i].scriptID == scriptObj.id) {
+        console.log("   id[" + i + "]=" + scriptObjs[i].id);
+        if (scriptObjs[i].id == scriptObj.id) {
             fndIt = true;
+            console.log("found scriptID: " + scriptObj.id + " at pos " + i);
             scriptObjs[i] = scriptObj;
             break;
         }
@@ -103,7 +129,13 @@ function runAndDeleteScript(scriptID, runIt) {
     })
     //console.log("   scriptObj tvList=" + scriptObj.tvList + " channelID=" + scriptObj.channelID);
     if (runIt) {
-        ch.changeChannels(scriptObj.tvList, scriptObj.channelID, scriptObj.channelNumber);
+        mtvs = scriptObj.tvList.split("|");
+        mChannels = scriptObj.channelID.split("|");
+        mChnum = scriptObj.channelNumber.split("|");
+        for (var mccnt=0; mccnt < mChannels.length; mccnt++) {
+            tvArr = mtvs[mccnt].split(",");
+            ch.changeChannels(tvArr, mChannels[mccnt], mChnum[mccnt]);
+        }
     }
     scriptObjs = scriptObjs.filter(function( obj ) {
         return obj.id !== scriptID;
@@ -127,25 +159,87 @@ router.get('/', function(req, res, next) {
     checkToRender(res);    
 });
 
-router.get('/scheduleScript', function(req, res, next) {
+router.get('/editScript', function(req, res, next) {
     for (var i=0; i < scriptObjs.length; i++) {
         if (scriptObjs[i].id == req.query.scriptID) {
-            currentScript = { 'id' : uuid(), 'name' : scriptObjs[i].name + "_torun", 
+            mtvs = scriptObjs[i].tvList.split("|");
+            mChannels = scriptObjs[i].channelNumber.split("|");
+            currentScript = { 'id' : scriptObjs[i].id, 'name' : scriptObjs[i].name, 
                 'runDT' : '', 'tvIPs' : scriptObjs[i].tvIPs, 'tvList' : scriptObjs[i].tvList,
-                'channelID' : scriptObjs[i].channelID, 'channelNumber' : scriptObjs[i].channelNumber};
+                'channelID' : scriptObjs[i].channelID, 'channelNumber' : scriptObjs[i].channelNumber,
+                'mtvList' : mtvs, 'mchList' : mChannels};
             break;
         }
     }    
     if (currentScript.tvList && currentScript.tvList != "undefined" && currentScript.tvList != "") {
         scriptSelectedTVNums = currentScript.tvList.split(",");
+        channelAndTVs.splice(0,channelAndTVs.length);
+        channelNumberList = currentScript.channelNumber.split("|");
+        tvNumberList = currentScript.tvList.split("|");
+        for (var i=0; i < channelNumberList.length; i++) {
+            channelAndTVs[i] = { 'channelNumber' : channelNumberList[i], 'tvList' : tvNumberList[i]};
+        }        
     }
-    res.render('scriptedit', { currentScript : currentScript, channelList : staticChannelList, tvList : tvListObj, scriptSelectedTVNums : scriptSelectedTVNums });
+    res.render('scriptedit', { channelAndTVs : channelAndTVs, currentScript : currentScript, channelList : staticChannelList, tvList : tvListObj, scriptSelectedTVNums : scriptSelectedTVNums });
 });
+
+
+router.get('/scheduleScript', function(req, res, next) {
+    for (var i=0; i < scriptObjs.length; i++) {
+        if (scriptObjs[i].id == req.query.scriptID) {
+            mtvs = scriptObjs[i].tvList.split("|");
+            mChannels = scriptObjs[i].channelNumber.split("|");
+            currentScript = { 'id' : uuid(), 'name' : scriptObjs[i].name + "_torun", 
+                'runDT' : '', 'tvIPs' : scriptObjs[i].tvIPs, 'tvList' : scriptObjs[i].tvList,
+                'channelID' : scriptObjs[i].channelID, 'channelNumber' : scriptObjs[i].channelNumber,
+                'mtvList' : mtvs, 'mchList' : mChannels};
+            break;
+        }
+    }    
+    if (currentScript.tvList && currentScript.tvList != "undefined" && currentScript.tvList != "") {
+        scriptSelectedTVNums = currentScript.tvList.split(",");
+        channelAndTVs.splice(0,channelAndTVs.length);
+        channelNumberList = currentScript.channelNumber.split("|");
+        tvNumberList = currentScript.tvList.split("|");
+        for (var i=0; i < channelNumberList.length; i++) {
+            channelAndTVs[i] = { 'channelNumber' : channelNumberList[i], 'tvList' : tvNumberList[i]};
+        }    
+    }
+    res.render('scriptedit', { channelAndTVs : channelAndTVs, currentScript : currentScript, channelList : staticChannelList, tvList : tvListObj, scriptSelectedTVNums : scriptSelectedTVNums });
+});
+
+router.get('/runScript', function(req, res, next) {
+    currentScript = '';
+    mtvs = [];
+    mChannels = [];
+    tvArr = [];
+    console.log("run now scriptID=" + req.query.scriptID);
+    for (var i=0; i < scriptObjs.length; i++) {
+        if (scriptObjs[i].id == req.query.scriptID) {
+            mtvs = scriptObjs[i].tvList.split("|");
+            mChannels = scriptObjs[i].channelID.split("|");
+            mChnum = scriptObjs[i].channelNumber.split("|");
+            currentScript = scriptObjs[i];
+            console.log("run now FOUND IT!!!");
+            break;
+        }
+    }    
+    if (currentScript && currentScript != "undefined" && currentScript != "" &&
+            currentScript.tvList && currentScript.tvList != "undefined" && currentScript.tvList != "") {       
+        for (var mccnt=0; mccnt < mChannels.length; mccnt++) {
+            tvArr = mtvs[mccnt].split(",");
+            ch.changeChannels(tvArr, mChannels[mccnt], mChnum[mccnt]);
+        }
+    }
+    res.render('scripts', { scriptObjs : scriptObjs });
+});
+
 
 router.get('/new', function(req, res, next) {
     scriptSelectedTVNums = [];
-    currentScript = { 'id' : uuid(), 'name' : '', 'runDT' : '', 'tvIPs' : '', 'tvList' : '', 'channelID' : '', 'channelNumber' : ''};
-    res.render('scriptedit', { currentScript : currentScript, channelList : staticChannelList, tvList : tvListObj, scriptSelectedTVNums : scriptSelectedTVNums });
+    channelAndTVs.splice(0,channelAndTVs.length);
+    currentScript = { 'id' : uuid(), 'name' : '', 'runDT' : '', 'tvIPs' : '', 'tvList' : '', 'channelID' : '', 'channelNumber' : '', 'mtvList' : [], 'mchList' : []};
+    res.render('scriptedit', { channelAndTVs : channelAndTVs, currentScript : currentScript, channelList : staticChannelList, tvList : tvListObj, scriptSelectedTVNums : scriptSelectedTVNums });
 });
 
 function checkToReturn(res) {

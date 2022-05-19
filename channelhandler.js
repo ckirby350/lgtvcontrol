@@ -146,7 +146,7 @@ function goToVizioChannel(channelNum) {
             code4 = 48 + Number(channelNum.substring(3,4));
         }
     }
-    //console.log("viz code1=" + code1 + " code2=" + code2 + " code3=" + code3 + " code4=" + code4 + " now=" + Date.now());
+    console.log("viz code1=" + code1 + " code2=" + code2 + " code3=" + code3 + " code4=" + code4 + " now=" + Date.now());
     viziotv.control.keyCommand(0, code1, 'KEYPRESS').then((value) => {
         if (code2 > 0) {
             strf.sleep(vizioKeyPressDelayInMillis);  

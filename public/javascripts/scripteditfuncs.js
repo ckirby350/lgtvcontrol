@@ -1,10 +1,12 @@
 var scriptSelectedTVNums = [];
 var fetchingChannels = false;
 var tvChannelsWereRetrieved = false;
+var catRowCnt = 1000;
 
 function initPage(tvList, channelID, channelNumber) {  
     document.getElementById("selectedChannelID").value = channelID;
     document.getElementById("selectedChannelNumber").value = channelNumber;  
+    /***
     if (tvList && tvList != "undefined" && tvList != "") {
         tvNumArray = tvList.split(",");
         firstBtn = document.getElementById("tvBtn" + tvNumArray[0]);
@@ -14,14 +16,14 @@ function initPage(tvList, channelID, channelNumber) {
             scriptSelectedTVNums[scriptSelectedTVNums.length] = tvNumArray[i];
         }
     }
+    ***/
 }
 
-function saveScript() {
+function addSelection() {
     if (scriptSelectedTVNums.length < 1 || document.getElementById("selectedChannelID").value.length < 1) {
-        window.alert("You have to pick at least 1 TV and 1 Channel for the script.")
+        window.alert("You have to pick at least 1 TV and 1 Channel for the selection.")
         return;
     }
-    document.getElementById("mainBtnDiv").style.visibility = "hidden";
     var tvStr = "";
     for (var i=0; i < scriptSelectedTVNums.length; i++) {
         if (i > 0) {
@@ -29,8 +31,54 @@ function saveScript() {
         }
         tvStr = tvStr + scriptSelectedTVNums[i];
     }
-    document.getElementById("selectedTVNums").value = tvStr;
-    //window.alert("selectedTVNums len=" + scriptSelectedTVNums.length + " selectedChannelIDs len=" + scriptSelectedChannelIDs.length);
+    catRowCnt++;
+    //window.alert("tvs Selected=" + tvStr + " channelID=" + document.getElementById("selectedChannelID").value + " channelNum=" + document.getElementById("selectedChannelNumber").value);    
+    var catTbody = document.getElementById('channelAndTVsTbl').getElementsByTagName('tbody')[0];
+    var newRow = catTbody.insertRow();
+    newRow.id = "catRow" + catRowCnt;
+    var newTD = newRow.insertCell();
+    newTD.style.padding = "0px";
+    newTD.innerHTML = '<a href="javascript:deleteChannelAndTVsTblRow(\'catRow' + catRowCnt + '\');" class="text-danger fw-bold text-decoration-none")>X</a> ' +
+        document.getElementById("selectedChannelNumber").value + ' : ' + tvStr;    
+    
+}
+
+function deleteChannelAndTVsTblRow(rowid) {
+    var row = document.getElementById(rowid);
+    row.parentNode.removeChild(row);
+} 
+
+function saveScript() {
+    var catBody = document.getElementById('channelAndTVsTbl').getElementsByTagName('tbody')[0];
+    var selectionCnt = catBody.rows.length;
+    //if (scriptSelectedTVNums.length < 1 || document.getElementById("selectedChannelID").value.length < 1) {
+    if (selectionCnt < 1) {
+        window.alert("You have to have at least one listing in the Channel/TV Selection list to save the script.")
+        return;
+    }
+    document.getElementById("mainBtnDiv").style.visibility = "hidden";
+    var tdVal = "";
+    var splitVal = [];
+    var endAIndex = -1;
+    var selectedChannelNums = "";
+    var selectedTVNums = "";
+    for (var rowcnt=0; rowcnt < selectionCnt; rowcnt++) {
+        tdVal = catBody.rows[rowcnt].cells[0].innerHTML;
+        endAIndex = tdVal.indexOf("</a>");
+        tdVal = tdVal.substring((endAIndex + 5));
+        //window.alert("tdval=" + tdVal);
+        splitVal = tdVal.split(":");
+        if (selectedChannelNums && selectedChannelNums.length > 0) {
+            selectedChannelNums = selectedChannelNums + "|";
+            selectedTVNums = selectedTVNums + "|";
+        }
+        selectedChannelNums = selectedChannelNums + splitVal[0].trim();
+        selectedTVNums = selectedTVNums + splitVal[1].trim() ;
+        //window.alert("channelNum=" + splitVal[0].trim() + " tvs=" + splitVal[1].trim()  );
+    }
+    document.getElementById("selectedTVNums").value = selectedTVNums;
+    document.getElementById("selectedChannelNumber").value = selectedChannelNums;
+    //window.alert("selectedChannelNumber=" + document.getElementById("selectedChannelNumber").value + " selectedTVNums=" + document.getElementById("selectedTVNums").value  );
     document.getElementById("scriptForm").submit();
 }
 
