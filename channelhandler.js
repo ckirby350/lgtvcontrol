@@ -11,7 +11,7 @@ function okToChangeChannel(tvIPAddr, mfg, key, newChannelID, newChannelNumber) {
         setTimeout(okToChangeChannel, 1000, tvIPAddr, mfg, key, newChannelID, newChannelNumber);
         return;
     }
-    changeTVChannel(tvIPAddr, mfg, key, newChannelID, newChannelNumber);
+    changeTVChannel(tvIPAddr, mfg, key, newChannelID, newChannelNumber);   
 }
 
 function changeChannels(tvNumsToChange, newChannelID, newChannelNumber) {
@@ -151,7 +151,7 @@ function goToVizioChannel(channelNum) {
         if (code2 > 0) {
             strf.sleep(vizioKeyPressDelayInMillis);  
             //console.log("  sending code2..." + Date.now());
-            viziotv.control.keyCommand(0, code2, 'KEYPRESS').then((value) => { 
+            viziotv.control.keyCommand(0, code2, 'KEYPRESS').then((value) => {
                 if (code3 > 0) {
                     strf.sleep(vizioKeyPressDelayInMillis);  
                     //console.log("  sending code3..." + Date.now());                  

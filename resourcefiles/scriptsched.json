@@ -1,0 +1,49 @@
+[
+    {
+        "id": "a10d56ed-2bb5-4020-a67e-e4033ec2802d",
+        "name": "Test Name1",
+        "tvIPs": "192.168.254.23,192.168.254.21,192.168.254.78",
+        "channelID": "3_2_2_1_0_0_0",
+        "channelNumber": "2-1",
+        "tvList": "1,2,3",
+        "runDT": "",
+        "mtvList": [
+            "1,2,3"
+        ],
+        "mchList": [
+            "2-1"
+        ]
+    },
+    {
+        "id": "2afe9b3e-5a9a-484d-98bc-093521fb2346",
+        "name": "New add test with static channel list gggg",
+        "tvIPs": "192.168.254.23,192.168.254.21,192.168.254.77",
+        "channelID": "3_47_47_1_0_0_0",
+        "channelNumber": "47-1",
+        "tvList": "1,2,5",
+        "runDT": "",
+        "mtvList": [
+            "1,2,5"
+        ],
+        "mchList": [
+            "47-1"
+        ]
+    },
+    {
+        "id": "8be68151-dc1e-4765-b147-9da9433e48da",
+        "name": "mulit test viz 58-2, lg to 3-1",
+        "tvIPs": "192.168.254.77,192.168.254.99,192.168.254.23,192.168.254.23|192.168.254.23,192.168.254.21",
+        "channelID": "58-2|3_3_3_1_0_0_0",
+        "channelNumber": "58-2|3-1",
+        "tvList": "5,6,7,9|1,2",
+        "runDT": "",
+        "mtvList": [
+            "5,6,7,9",
+            "1,2"
+        ],
+        "mchList": [
+            "58-2",
+            "3-1"
+        ]
+    }
+]

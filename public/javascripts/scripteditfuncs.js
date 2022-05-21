@@ -39,8 +39,9 @@ function addSelection() {
     var newTD = newRow.insertCell();
     newTD.style.padding = "0px";
     newTD.innerHTML = '<a href="javascript:deleteChannelAndTVsTblRow(\'catRow' + catRowCnt + '\');" class="text-danger fw-bold text-decoration-none")>X</a> ' +
-        document.getElementById("selectedChannelNumber").value + ' : ' + tvStr;    
-    
+        document.getElementById("selectedChannelNumber").value + ' : ' + tvStr;  
+    clearChannelBtnSelect();  
+    clearTVBtnSelect();
 }
 
 function deleteChannelAndTVsTblRow(rowid) {
@@ -82,10 +83,8 @@ function saveScript() {
     document.getElementById("scriptForm").submit();
 }
 
-function selectChannel(btn, xchannelID, xchannelNum) {
-    //window.alert("selected channelID=" + xchannelID + " btn.id=" + btn.id + " type=" + btn.type + " tagName=" + btn.tagName);
-    var ybtn;
-    var ybuttons = document.getElementsByTagName('button');
+function clearChannelBtnSelect() {    
+    ybuttons = document.getElementsByTagName('button');
     //window.alert("ybuttons len=" + ybuttons.length);
     for (let i = 0; i < ybuttons.length; i++) {
         ybtn = ybuttons[i];
@@ -94,6 +93,26 @@ function selectChannel(btn, xchannelID, xchannelNum) {
             ybtn.className = "btn btn-primary btn-lg";
         }        
     }
+    document.getElementById("selectedChannelID").value = "";
+    document.getElementById("selectedChannelNumber").value = "";
+}
+
+function clearTVBtnSelect() {    
+    ybuttons = document.getElementsByTagName('button');
+    //window.alert("ybuttons len=" + ybuttons.length);
+    for (let i = 0; i < ybuttons.length; i++) {
+        ybtn = ybuttons[i];
+        //window.alert("ybtn id=" + ybtn.id);
+        if (ybtn.id.indexOf("tvBtn") > -1) {
+            ybtn.className = "btn btn-primary btn-lg";
+        }        
+    }
+    scriptSelectedTVNums.splice(0, scriptSelectedTVNums.length);
+}
+
+function selectChannel(btn, xchannelID, xchannelNum) {
+    //window.alert("selected channelID=" + xchannelID + " btn.id=" + btn.id + " type=" + btn.type + " tagName=" + btn.tagName);
+    clearChannelBtnSelect();
     btn.className = "btn btn-success btn-lg";
     document.getElementById("selectedChannelID").value = xchannelID;
     document.getElementById("selectedChannelNumber").value = xchannelNum;

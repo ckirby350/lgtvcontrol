@@ -17,8 +17,9 @@ let sendRequest = (method, url, authKey, data) => {
             AUTH: authKey
         };
     }
-
-    return request[method](req);
+    return request[method](req).catch((err) => {
+        console.log("viz sendreq error: " + err.message);
+    });
 }
 
 let keyData = (codeset, code, action) => {
@@ -100,6 +101,7 @@ let SMARTCAST = function smartcast(host, authKey) {
                     _pairingRequestToken = data.ITEM.PAIRING_REQ_TOKEN;
                     return data;
                 } else {
+                    console.log("viz5 data.STATUS.RESULT=" + data.STATUS.RESULT);
                     if (data.STATUS.RESULT === 'BLOCKED') {
                         return Promise.reject('Failed to initiate the pairing process because a pairing request has already been initiated. Please wait for the pin to clear from the screen before initiating the pairing process again.', data);
                     } else {

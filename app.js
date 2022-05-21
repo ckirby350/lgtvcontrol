@@ -1,4 +1,5 @@
 require('./vars.js');
+require('../data/tvchinfo.js');
 const express = require('express');
 const schedule = require('node-schedule');
 const fh = require("./filehandler");
