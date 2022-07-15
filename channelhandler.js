@@ -15,7 +15,8 @@ function okToChangeChannel(tvIPAddr, mfg, key, newChannelID, newChannelNumber) {
 }
 
 function changeChannels(tvNumsToChange, newChannelID, newChannelNumber) {
-    var tv;   
+    var tv;  
+    console.log("START changeChannels tvNumsToChange=" + tvNumsToChange + " newChannelNumber=" + newChannelNumber + "********************"); 
     for (var i = 0; i < tvListObj.length; i++) { 
         tv = tvListObj[i];
         if (tvNumsToChange.includes(tv.tvNumber)) {
@@ -28,7 +29,7 @@ function changeChannels(tvNumsToChange, newChannelID, newChannelNumber) {
 function changeTVChannel(tvIPAddr, mfg, key, newChannelID, newChannelNumber) {
     changingChannel = true;
     var xlgtv;
-    console.log("Changing TV IP " + tvIPAddr + " mfg=" + mfg + " to channel id=" + newChannelID + " num=" + newChannelNumber);
+    console.log("     Changing TV IP " + tvIPAddr + " mfg=" + mfg + " to channel id=" + newChannelID + " channelnum=" + newChannelNumber);
     if (mfg == "LG") {
         xlgtv = require('./master.js')({
             url: 'ws://' + tvIPAddr + ':3000',

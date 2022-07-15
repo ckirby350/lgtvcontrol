@@ -114,7 +114,7 @@ function connCheck(tvMfg, tvIPAddr, tvNum, tvKey) {
 }
 
 router.get("/healthCheck", (req,res) => {
-    console.log("in index router /healthCheck");
+    console.log("START healthCheck ******************************************************");
     var tv;   
     badTVList = [];
     ips = []
@@ -142,7 +142,7 @@ function checkToReturn(res) {
         setTimeout(checkToReturn, 1000, res);
         return;
     }
-    console.log("returning from healthCheck...");
+    console.log("END healthCheck   ******************************************************");
     sortedList = [];
     for (var i=0; i < badTVList.length; i++) {
         sortedList[sortedList.length] = Number(badTVList[i]);

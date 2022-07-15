@@ -11,9 +11,23 @@ function showChannels(tvNum) {
     document.getElementById("gotoChannelsForm").submit();
 }
 
+function resetBtns() {
+    ybuttons = document.getElementsByTagName('button');
+    //window.alert("ybuttons len=" + ybuttons.length);
+    for (let i = 0; i < ybuttons.length; i++) {
+        ybtn = ybuttons[i];
+        //window.alert("ybtn id=" + ybtn.id);
+        if (ybtn.id.indexOf("channelBtn") > -1 || ybtn.id.indexOf("tv") == 0) {
+            ybtn.className = "btn btn-primary btn-lg";
+        }        
+    }
+    selectedTVNums.splice(0, selectedTVNums.length);
+}
+
 function runHealthCheck() {
     document.getElementById("healthChkBtn").disabled = true;
     document.getElementById("healthChkBtn").innerHTML = "Running...";
+    resetBtns();
     $.ajax({
         "url": "/healthCheck",
         "method": "GET"

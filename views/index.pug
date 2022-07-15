@@ -11,7 +11,7 @@ html
         script(src="../javascripts/homefunctions.js") 
         script(src="../javascripts/jquery-3.6.0.min.js")        
         script.
-            selectedTVNums = [#{selectedTVList}];
+            selectedTVNums = !{JSON.stringify(selectedTVList)}
     body(style="margin-left: 5px; margin-top: 10px;")        
         main#main
         div(class="container")
@@ -19,6 +19,11 @@ html
                 div(class="col-4")
                     h3 Channel List  
                 div(class="col-8" id="topBtnDiv" name="topBtnDiv" style="text-align: right;")  
+                    button(type='button' id="resetBtn" name="resetBtn"
+                        class='btn btn-primary btn-lg'  
+                        style="margin-right: 20px;"                       
+                        value="reset"
+                        onClick='resetBtns();') Reset
                     a(href="/scripts")
                         button(type='button' 
                             id='scriptsBtn'
@@ -45,7 +50,7 @@ html
                             class=(selectedTVList.includes(tv.tvNumber) ? 'btn btn-success btn-lg' : 'btn btn-primary btn-lg') 
                             style='margin-left: 20px; margin-bottom: 30px;'
                             value=tv.tvNumber
-                                onClick='selectTV(this, ' + tv.tvNumber + ');') TV # #{tv.tvNumber}  
+                                onClick='selectTV(this, "' + tv.tvNumber + '");') #{tv.tvNumber}  
                 div(class="col-4 overflow-auto" style="max-height: 500px;")     
                     each channel in channelList  
                         if currGuideObjs != "undefined" && currGuideObjs.length > 0
@@ -54,6 +59,7 @@ html
                                     tr 
                                         td(style="width:60%;")
                                             button(type='button' 
+                                                id = "channelBtn" + channel.channelId
                                                 class=(channel.channelId == currentChannelID ? 'btn btn-success btn-lg' : 'btn btn-primary btn-lg') 
                                                 style='margin-left: 2px; margin-bottom: 20px;'                            
                                                     onClick='selectChannel("' + channel.channelId + '","' + channel.channelNumber + '");') #{channel.network && channel.network != "" ? channel.network : channel.channelMode} #{channel.channelNumber}                            
@@ -61,6 +67,7 @@ html
                                             |  #{channel.currProgram}
                         else 
                             button(type='button' 
+                                id = "channelBtn" + channel.channelId
                                 class=(channel.channelId == currentChannelID ? 'btn btn-success btn-lg' : 'btn btn-primary btn-lg') 
                                 style='margin-left: 12px; margin-bottom: 30px;'                            
                                     onClick='selectChannel("' + channel.channelId + '","' + channel.channelNumber + '");') #{channel.network && channel.network != "" ? channel.network : channel.channelMode} #{channel.channelNumber}
